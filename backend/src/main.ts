@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { AppModule, ObserveInstrument } from './app.module.js';
 
@@ -8,4 +10,4 @@ async function bootstrap() {
   // await app.listen(process.env.PORT ?? 3000);
   await app.listen(4000, '0.0.0.0');
 }
-await bootstrap();
+bootstrap();
