@@ -102,9 +102,12 @@ model Product{
   id String @id @default(cuid())
   name String
   description String
-  price Float
+  price Float   
+  isPublished Boolean @default(false)
+  slug String?
   imageUrl String
   categoryId String
+  isApproved Boolean @default(false)
   providerId String?
   provider Provider? @relation(fields: [providerId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
@@ -114,12 +117,14 @@ model Product{
   
 }
 
+
 model Cart{
   id String @id @default(cuid())
   userId Int
   user User @relation(fields: [userId], references: [id]) 
   items CartItem[]
 }
+
 
 model CartItem{
   id String @id @default(cuid())

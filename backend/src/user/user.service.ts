@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { RegisterProviderDto } from './dto/register-provider.dto';
 
 @Injectable()
 export class UserService {
@@ -53,6 +54,71 @@ export class UserService {
       accessToken,
       user: userWithoutPassword,
     };
+  }
+
+
+  async registerProvider(dto:RegisterProviderDto){
+    const existingUser:any = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase().trim() },
+    });
+    const existingProvider = await this.prisma.provider.findUnique({
+      where: { userId: existingUser?.id ? existingUser.id : 0},
+    });
+    
+    if(existingUser && existingProvider){
+      throw new ConflictException('Provider already exists with this email please login');
+    }
+
+    if (existingUser) {
+      throw new ConflictException('User already exists with this email please login and convert to provider');
+    }
+
+
+    if (existingProvider) {
+      throw new ConflictException('Provider already exists please login through provider login page');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    
+
+    const newUser = await this.prisma.user.create({
+      data:{
+        email:dto.email,
+        password:hashedPassword,
+        name:dto.name,
+        role:'PROVIDER'
+      }
+    })
+
+    console.log(newUser)
+
+    const newProvider = await this.prisma.provider.create({
+      data:{
+        userId:newUser.id,
+        businessName:dto.businessName,
+        description:dto.description,
+        status:'PENDING'
+      }
+    })
+
+    const { password, ...userWithoutPassword } = newUser;
+    
+    const payload = {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    
+    
+    return {
+      message: 'Provider registered successfully',
+      user: {...userWithoutPassword, ...newProvider},
+      accessToken,
+    };
+
   }
 
   async login (dto: LoginUserDto){

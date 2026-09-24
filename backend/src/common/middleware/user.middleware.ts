@@ -11,13 +11,18 @@ export class UserMiddleware implements NestMiddleware {
   constructor(private readonly jwtService: JwtService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.headers['authorization'];
+    let token = req.cookies?.['accessToken'];
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid Authorization header');
+    if (!token) {
+      const authHeader = req.headers['authorization'];
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Missing or invalid Authorization token');
+    }
 
     try {
       const payload = this.jwtService.verify(token);

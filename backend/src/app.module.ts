@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,6 +10,9 @@ import { UserMiddleware } from './common/middleware/user.middleware';
 import { AdminMiddleware } from './common/middleware/admin.middleware';
 import { ProviderMiddleware } from './common/middleware/provider.middleware';
 import { CategoriesModule } from './categories/categories.module';
+import { AdminController } from './admin/admin.controller';
+import { AdminService } from './admin/admin.service';
+import { AdminModule } from './admin/admin.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -26,33 +29,28 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ProductsModule,
     PrismaModule,
     CategoriesModule,
+    AdminModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, AdminController],
+  providers: [AppService, AdminService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // 1. Logger - applied globally
     consumer.apply(LoggerMiddleware).forRoutes('*');
 
-    // 2. UserMiddleware - any logged-in user (USER, ADMIN, PROVIDER, PROVIDER_STAFF)
-    //    Apply to routes accessible by everyone who is logged in
-    
+    // 2. ProviderMiddleware - only PROVIDER, PROVIDER_STAFF or ADMIN role
+    //    Protects provider inventory management (create, read own, update, publish, delete)
     consumer
-      .apply(UserMiddleware)
-      .exclude('user/register', 'user/login')
-      .forRoutes('products', 'categories');
-
-    // 3. AdminMiddleware - only ADMIN role
-    //    Apply to admin-only routes
-    // consumer
-    //   .apply(AdminMiddleware)
-    //   .forRoutes('admin');
-
-    // 4. ProviderMiddleware - only PROVIDER or PROVIDER_STAFF role
-    //    Apply to provider-only routes
-    // consumer
-    //   .apply(ProviderMiddleware)
-    //   .forRoutes('providers');
+      .apply(ProviderMiddleware)
+      .forRoutes(
+        { path: 'products', method: RequestMethod.POST },
+        { path: 'products/my', method: RequestMethod.GET },
+        { path: 'products/my/:id', method: RequestMethod.GET },
+        { path: 'products/:id/publish', method: RequestMethod.PATCH },
+        { path: 'products/:id', method: RequestMethod.PATCH },
+        { path: 'products/:id', method: RequestMethod.PUT },
+        { path: 'products/:id', method: RequestMethod.DELETE },
+      );
   }
 }

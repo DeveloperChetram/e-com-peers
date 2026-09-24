@@ -39,8 +39,11 @@ export type ProductMinAggregateOutputType = {
   name: string | null
   description: string | null
   price: number | null
+  isPublished: boolean | null
+  slug: string | null
   imageUrl: string | null
   categoryId: string | null
+  isApproved: boolean | null
   providerId: string | null
 }
 
@@ -49,8 +52,11 @@ export type ProductMaxAggregateOutputType = {
   name: string | null
   description: string | null
   price: number | null
+  isPublished: boolean | null
+  slug: string | null
   imageUrl: string | null
   categoryId: string | null
+  isApproved: boolean | null
   providerId: string | null
 }
 
@@ -59,8 +65,11 @@ export type ProductCountAggregateOutputType = {
   name: number
   description: number
   price: number
+  isPublished: number
+  slug: number
   imageUrl: number
   categoryId: number
+  isApproved: number
   providerId: number
   _all: number
 }
@@ -79,8 +88,11 @@ export type ProductMinAggregateInputType = {
   name?: true
   description?: true
   price?: true
+  isPublished?: true
+  slug?: true
   imageUrl?: true
   categoryId?: true
+  isApproved?: true
   providerId?: true
 }
 
@@ -89,8 +101,11 @@ export type ProductMaxAggregateInputType = {
   name?: true
   description?: true
   price?: true
+  isPublished?: true
+  slug?: true
   imageUrl?: true
   categoryId?: true
+  isApproved?: true
   providerId?: true
 }
 
@@ -99,8 +114,11 @@ export type ProductCountAggregateInputType = {
   name?: true
   description?: true
   price?: true
+  isPublished?: true
+  slug?: true
   imageUrl?: true
   categoryId?: true
+  isApproved?: true
   providerId?: true
   _all?: true
 }
@@ -196,8 +214,11 @@ export type ProductGroupByOutputType = {
   name: string
   description: string
   price: number
+  isPublished: boolean
+  slug: string | null
   imageUrl: string
   categoryId: string
+  isApproved: boolean
   providerId: string | null
   _count: ProductCountAggregateOutputType | null
   _avg: ProductAvgAggregateOutputType | null
@@ -229,8 +250,11 @@ export type ProductWhereInput = {
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringFilter<"Product"> | string
   price?: Prisma.FloatFilter<"Product"> | number
+  isPublished?: Prisma.BoolFilter<"Product"> | boolean
+  slug?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringFilter<"Product"> | string
+  isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
   provider?: Prisma.XOR<Prisma.ProviderNullableScalarRelationFilter, Prisma.ProviderWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
@@ -244,8 +268,11 @@ export type ProductOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   provider?: Prisma.ProviderOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
@@ -262,8 +289,11 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringFilter<"Product"> | string
   price?: Prisma.FloatFilter<"Product"> | number
+  isPublished?: Prisma.BoolFilter<"Product"> | boolean
+  slug?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringFilter<"Product"> | string
+  isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
   provider?: Prisma.XOR<Prisma.ProviderNullableScalarRelationFilter, Prisma.ProviderWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
@@ -277,8 +307,11 @@ export type ProductOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
+  slug?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ProductCountOrderByAggregateInput
   _avg?: Prisma.ProductAvgOrderByAggregateInput
@@ -295,8 +328,11 @@ export type ProductScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Product"> | string
   description?: Prisma.StringWithAggregatesFilter<"Product"> | string
   price?: Prisma.FloatWithAggregatesFilter<"Product"> | number
+  isPublished?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
+  slug?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   imageUrl?: Prisma.StringWithAggregatesFilter<"Product"> | string
   categoryId?: Prisma.StringWithAggregatesFilter<"Product"> | string
+  isApproved?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
 }
 
@@ -305,7 +341,10 @@ export type ProductCreateInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -318,8 +357,11 @@ export type ProductUncheckedCreateInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   providerId?: string | null
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
@@ -331,7 +373,10 @@ export type ProductUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -344,8 +389,11 @@ export type ProductUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
@@ -357,8 +405,11 @@ export type ProductCreateManyInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   providerId?: string | null
 }
 
@@ -367,7 +418,10 @@ export type ProductUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ProductUncheckedUpdateManyInput = {
@@ -375,8 +429,11 @@ export type ProductUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -395,8 +452,11 @@ export type ProductCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
 }
 
@@ -409,8 +469,11 @@ export type ProductMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
 }
 
@@ -419,8 +482,11 @@ export type ProductMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
 }
 
@@ -572,7 +638,10 @@ export type ProductCreateWithoutProviderInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -584,8 +653,11 @@ export type ProductUncheckedCreateWithoutProviderInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -625,8 +697,11 @@ export type ProductScalarWhereInput = {
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringFilter<"Product"> | string
   price?: Prisma.FloatFilter<"Product"> | number
+  isPublished?: Prisma.BoolFilter<"Product"> | boolean
+  slug?: Prisma.StringNullableFilter<"Product"> | string | null
   imageUrl?: Prisma.StringFilter<"Product"> | string
   categoryId?: Prisma.StringFilter<"Product"> | string
+  isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
 }
 
@@ -635,7 +710,10 @@ export type ProductCreateWithoutCategoryInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -647,7 +725,10 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   providerId?: string | null
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
@@ -685,7 +766,10 @@ export type ProductCreateWithoutCartItemInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -697,8 +781,11 @@ export type ProductUncheckedCreateWithoutCartItemInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   providerId?: string | null
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -725,7 +812,10 @@ export type ProductUpdateWithoutCartItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -737,8 +827,11 @@ export type ProductUncheckedUpdateWithoutCartItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -749,7 +842,10 @@ export type ProductCreateWithoutFaviorateInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -761,8 +857,11 @@ export type ProductUncheckedCreateWithoutFaviorateInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   providerId?: string | null
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -789,7 +888,10 @@ export type ProductUpdateWithoutFaviorateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -801,8 +903,11 @@ export type ProductUncheckedUpdateWithoutFaviorateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -813,7 +918,10 @@ export type ProductCreateWithoutOrderItemInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -825,8 +933,11 @@ export type ProductUncheckedCreateWithoutOrderItemInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
   providerId?: string | null
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
@@ -853,7 +964,10 @@ export type ProductUpdateWithoutOrderItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -865,8 +979,11 @@ export type ProductUncheckedUpdateWithoutOrderItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
@@ -877,8 +994,11 @@ export type ProductCreateManyProviderInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
   categoryId: string
+  isApproved?: boolean
 }
 
 export type ProductUpdateWithoutProviderInput = {
@@ -886,7 +1006,10 @@ export type ProductUpdateWithoutProviderInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -898,8 +1021,11 @@ export type ProductUncheckedUpdateWithoutProviderInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -910,8 +1036,11 @@ export type ProductUncheckedUpdateManyWithoutProviderInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ProductCreateManyCategoryInput = {
@@ -919,7 +1048,10 @@ export type ProductCreateManyCategoryInput = {
   name: string
   description: string
   price: number
+  isPublished?: boolean
+  slug?: string | null
   imageUrl: string
+  isApproved?: boolean
   providerId?: string | null
 }
 
@@ -928,7 +1060,10 @@ export type ProductUpdateWithoutCategoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -940,7 +1075,10 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
@@ -952,7 +1090,10 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -1010,8 +1151,11 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name?: boolean
   description?: boolean
   price?: boolean
+  isPublished?: boolean
+  slug?: boolean
   imageUrl?: boolean
   categoryId?: boolean
+  isApproved?: boolean
   providerId?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1026,8 +1170,11 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   name?: boolean
   description?: boolean
   price?: boolean
+  isPublished?: boolean
+  slug?: boolean
   imageUrl?: boolean
   categoryId?: boolean
+  isApproved?: boolean
   providerId?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1038,8 +1185,11 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   name?: boolean
   description?: boolean
   price?: boolean
+  isPublished?: boolean
+  slug?: boolean
   imageUrl?: boolean
   categoryId?: boolean
+  isApproved?: boolean
   providerId?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1050,12 +1200,15 @@ export type ProductSelectScalar = {
   name?: boolean
   description?: boolean
   price?: boolean
+  isPublished?: boolean
+  slug?: boolean
   imageUrl?: boolean
   categoryId?: boolean
+  isApproved?: boolean
   providerId?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "imageUrl" | "categoryId" | "providerId", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "isPublished" | "slug" | "imageUrl" | "categoryId" | "isApproved" | "providerId", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1087,8 +1240,11 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     name: string
     description: string
     price: number
+    isPublished: boolean
+    slug: string | null
     imageUrl: string
     categoryId: string
+    isApproved: boolean
     providerId: string | null
   }, ExtArgs["result"]["product"]>
   composites: {}
@@ -1522,8 +1678,11 @@ export interface ProductFieldRefs {
   readonly name: Prisma.FieldRef<"Product", 'String'>
   readonly description: Prisma.FieldRef<"Product", 'String'>
   readonly price: Prisma.FieldRef<"Product", 'Float'>
+  readonly isPublished: Prisma.FieldRef<"Product", 'Boolean'>
+  readonly slug: Prisma.FieldRef<"Product", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Product", 'String'>
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
+  readonly isApproved: Prisma.FieldRef<"Product", 'Boolean'>
   readonly providerId: Prisma.FieldRef<"Product", 'String'>
 }
     

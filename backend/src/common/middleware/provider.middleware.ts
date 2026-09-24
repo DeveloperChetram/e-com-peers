@@ -6,21 +6,26 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response, NextFunction } from 'express';
-
-const PROVIDER_ROLES = ['PROVIDER', 'PROVIDER_STAFF'];
+import { PrismaService } from '../../prisma/prisma.service';
+const PROVIDER_ROLES = ['PROVIDER', 'PROVIDER_STAFF', 'ADMIN'];
 
 @Injectable()
 export class ProviderMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService, private readonly prisma: PrismaService) {}
 
-  use(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.headers['authorization'];
+  async use(req: Request, res: Response, next: NextFunction) {
+    let token = req.cookies?.['accessToken'];
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid Authorization header');
+    if (!token) {
+      const authHeader = req.headers['authorization'];
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Missing or invalid Authorization token');
+    }
 
     try {
       const payload = this.jwtService.verify(token);
@@ -29,7 +34,23 @@ export class ProviderMiddleware implements NestMiddleware {
         throw new ForbiddenException('Access denied: Providers only');
       }
 
-      (req as any).user = payload;
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.id },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid or expired token user not found');
+      }
+
+      const provider = await this.prisma.provider.findUnique({
+        where: { userId: payload.id },
+      });
+
+      if (!provider) {
+        throw new ForbiddenException('Access denied: Provider not found');
+      }
+      
+      (req as any).user = {...user,provider: { ...provider}};
       next();
     } catch (err) {
       if (err instanceof ForbiddenException) throw err;
