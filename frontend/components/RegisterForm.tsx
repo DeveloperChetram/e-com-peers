@@ -107,13 +107,11 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         })
       );
 
-      setServerSuccess(
-        res?.message || 'Provider account created! Redirecting to provider portal...'
-      );
 
       setTimeout(() => {
         router.push('/dashboard/provider');
       }, 800);
+      
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
       setServerError(message);

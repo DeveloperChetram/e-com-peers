@@ -408,7 +408,8 @@ export const ModelName = {
   Faviorate: 'Faviorate',
   Order: 'Order',
   OrderItem: 'OrderItem',
-  Shipment: 'Shipment'
+  Shipment: 'Shipment',
+  ShipmentLog: 'ShipmentLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "address" | "provider" | "providerMember" | "category" | "product" | "cart" | "cartItem" | "faviorate" | "order" | "orderItem" | "shipment"
+    modelProps: "user" | "address" | "provider" | "providerMember" | "category" | "product" | "cart" | "cartItem" | "faviorate" | "order" | "orderItem" | "shipment" | "shipmentLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1316,6 +1317,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ShipmentLog: {
+      payload: Prisma.$ShipmentLogPayload<ExtArgs>
+      fields: Prisma.ShipmentLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShipmentLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShipmentLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        findFirst: {
+          args: Prisma.ShipmentLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShipmentLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        findMany: {
+          args: Prisma.ShipmentLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>[]
+        }
+        create: {
+          args: Prisma.ShipmentLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        createMany: {
+          args: Prisma.ShipmentLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShipmentLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>[]
+        }
+        delete: {
+          args: Prisma.ShipmentLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        update: {
+          args: Prisma.ShipmentLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShipmentLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShipmentLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShipmentLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShipmentLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShipmentLogPayload>
+        }
+        aggregate: {
+          args: Prisma.ShipmentLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShipmentLog>
+        }
+        groupBy: {
+          args: Prisma.ShipmentLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShipmentLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShipmentLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShipmentLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1464,7 +1539,8 @@ export const OrderScalarFieldEnum = {
   providerId: 'providerId',
   addressDetail: 'addressDetail',
   addressId: 'addressId',
-  status: 'status'
+  status: 'status',
+  returnReason: 'returnReason'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -1486,8 +1562,11 @@ export const ShipmentScalarFieldEnum = {
   orderId: 'orderId',
   providerId: 'providerId',
   trackingNumber: 'trackingNumber',
+  carrier: 'carrier',
   assignedMemberId: 'assignedMemberId',
+  assignedStaffId: 'assignedStaffId',
   status: 'status',
+  currentLocation: 'currentLocation',
   startDate: 'startDate',
   endDate: 'endDate',
   createdAt: 'createdAt',
@@ -1495,6 +1574,19 @@ export const ShipmentScalarFieldEnum = {
 } as const
 
 export type ShipmentScalarFieldEnum = (typeof ShipmentScalarFieldEnum)[keyof typeof ShipmentScalarFieldEnum]
+
+
+export const ShipmentLogScalarFieldEnum = {
+  id: 'id',
+  shipmentId: 'shipmentId',
+  staffId: 'staffId',
+  status: 'status',
+  location: 'location',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type ShipmentLogScalarFieldEnum = (typeof ShipmentLogScalarFieldEnum)[keyof typeof ShipmentLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1794,6 +1886,7 @@ export type GlobalOmitConfig = {
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
   shipment?: Prisma.ShipmentOmit
+  shipmentLog?: Prisma.ShipmentLogOmit
 }
 
 /* Types for Logging */

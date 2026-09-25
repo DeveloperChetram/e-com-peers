@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -53,6 +54,9 @@ export class ProductsController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const user = (req as any).user;
+    if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
+      throw new ForbiddenException('Provider staff cannot create products. Only the store provider can perform this action.');
+    }
     return this.productsService.createProduct(dto, user, file);
   }
 
@@ -99,6 +103,9 @@ export class ProductsController {
     @Body('isPublished') isPublished?: boolean,
   ) {
     const user = (req as any).user;
+    if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
+      throw new ForbiddenException('Provider staff cannot modify product publication status.');
+    }
     return this.productsService.togglePublish(id, user, isPublished);
   }
 
@@ -111,12 +118,18 @@ export class ProductsController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const user = (req as any).user;
+    if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
+      throw new ForbiddenException('Provider staff cannot edit products.');
+    }
     return this.productsService.updateProduct(id, dto, user, file);
   }
 
   @Delete(':id')
   deleteProduct(@Param('id') id: string, @Req() req: Request) {
     const user = (req as any).user;
+    if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
+      throw new ForbiddenException('Provider staff cannot delete products.');
+    }
     return this.productsService.deleteProduct(id, user);
   }
 }

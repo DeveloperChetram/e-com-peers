@@ -62,7 +62,8 @@ export const ModelName = {
   Faviorate: 'Faviorate',
   Order: 'Order',
   OrderItem: 'OrderItem',
-  Shipment: 'Shipment'
+  Shipment: 'Shipment',
+  ShipmentLog: 'ShipmentLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -190,7 +191,8 @@ export const OrderScalarFieldEnum = {
   providerId: 'providerId',
   addressDetail: 'addressDetail',
   addressId: 'addressId',
-  status: 'status'
+  status: 'status',
+  returnReason: 'returnReason'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -212,8 +214,11 @@ export const ShipmentScalarFieldEnum = {
   orderId: 'orderId',
   providerId: 'providerId',
   trackingNumber: 'trackingNumber',
+  carrier: 'carrier',
   assignedMemberId: 'assignedMemberId',
+  assignedStaffId: 'assignedStaffId',
   status: 'status',
+  currentLocation: 'currentLocation',
   startDate: 'startDate',
   endDate: 'endDate',
   createdAt: 'createdAt',
@@ -221,6 +226,19 @@ export const ShipmentScalarFieldEnum = {
 } as const
 
 export type ShipmentScalarFieldEnum = (typeof ShipmentScalarFieldEnum)[keyof typeof ShipmentScalarFieldEnum]
+
+
+export const ShipmentLogScalarFieldEnum = {
+  id: 'id',
+  shipmentId: 'shipmentId',
+  staffId: 'staffId',
+  status: 'status',
+  location: 'location',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type ShipmentLogScalarFieldEnum = (typeof ShipmentLogScalarFieldEnum)[keyof typeof ShipmentLogScalarFieldEnum]
 
 
 export const SortOrder = {

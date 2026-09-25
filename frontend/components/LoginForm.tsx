@@ -3,47 +3,69 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, Store, ArrowRight, CheckCircle2, AlertCircle, Loader2, ShieldCheck, User } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Store,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ShieldCheck,
+  User,
+} from 'lucide-react';
 import { loginUser } from '@/apis/auth.api';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { useAppDispatch } from '@/redux/hooks';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
 
 interface LoginFormProps {
   initialRole?: string;
 }
 
+interface LoginFormInputs {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
 export function LoginForm({ initialRole }: LoginFormProps) {
-  const dispatch = useAppDispatch()
-  const user = useAppSelector((state) => state.auth)
-  console.log('user', user)
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role') || initialRole;
   const isProviderMode = roleParam === 'provider';
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormInputs>({
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: true,
+    },
+    mode: 'onTouched',
+  });
 
+  const onSubmit = async (data: LoginFormInputs) => {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!email.trim() || !password) {
-      setErrorMessage('Please fill in both email and password.');
-      return;
-    }
-
     try {
-      setLoading(true);
-      const res = await loginUser({ email, password, isProvider: isProviderMode });
-      
+      const res = await loginUser({
+        email: data.email.trim(),
+        password: data.password,
+        isProvider: isProviderMode,
+      });
+
       dispatch(setUserAndToken({ user: res.user, token: res.accessToken, role: res.user.role }));
       setSuccessMessage(res?.message || 'Login successful! Redirecting...');
 
@@ -54,8 +76,6 @@ export function LoginForm({ initialRole }: LoginFormProps) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in. Please verify your credentials.';
       setErrorMessage(message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -106,7 +126,7 @@ export function LoginForm({ initialRole }: LoginFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3" noValidate>
         {/* Email Field */}
         <div>
           <label htmlFor="login-email" className="block text-[11px] font-semibold uppercase tracking-wider text-gray-700 mb-1">
@@ -118,16 +138,26 @@ export function LoginForm({ initialRole }: LoginFormProps) {
             </div>
             <input
               id="login-email"
-              name="email"
               type="email"
               autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+              {...register('email', {
+                required: 'Email address is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Enter a valid email address',
+                },
+              })}
+              className={`w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
+                errors.email
+                  ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                  : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
+              }`}
             />
           </div>
+          {errors.email && (
+            <p className="text-[11px] text-red-500 mt-1 leading-tight">{errors.email.message}</p>
+          )}
         </div>
 
         {/* Password Field */}
@@ -153,14 +183,21 @@ export function LoginForm({ initialRole }: LoginFormProps) {
             </div>
             <input
               id="login-password"
-              name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+              {...register('password', {
+                required: 'Password is required',
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
+                },
+              })}
+              className={`w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
+                errors.password
+                  ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                  : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
+              }`}
             />
             <button
               type="button"
@@ -171,6 +208,9 @@ export function LoginForm({ initialRole }: LoginFormProps) {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-[11px] text-red-500 mt-1 leading-tight">{errors.password.message}</p>
+          )}
         </div>
 
         {/* Remember Me */}
@@ -178,8 +218,8 @@ export function LoginForm({ initialRole }: LoginFormProps) {
           <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600">
             <input
               type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
+              id="rememberMe"
+              {...register('rememberMe')}
               className="w-3.5 h-3.5 rounded border-gray-300 text-black focus:ring-black accent-black cursor-pointer"
             />
             <span>Remember this device</span>
@@ -189,10 +229,10 @@ export function LoginForm({ initialRole }: LoginFormProps) {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full mt-1.5 py-2.5 px-5 rounded-full bg-black text-white text-xs sm:text-sm font-semibold hover:bg-gray-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          {loading ? (
+          {isSubmitting ? (
             <>
               <Loader2 size={16} className="animate-spin" />
               <span>Signing in...</span>

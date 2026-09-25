@@ -15,6 +15,8 @@ import {
   X,
   LogOut,
   Sparkles,
+  Truck,
+  Users,
 } from 'lucide-react';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/slices/auth.slice';
@@ -39,6 +41,16 @@ const navItems = [
     label: 'Orders',
     href: '/dashboard/provider/orders',
     icon: ShoppingBag,
+  },
+  {
+    label: 'Shipment Dept',
+    href: '/dashboard/provider/shipments',
+    icon: Truck,
+  },
+  {
+    label: 'Staff Members',
+    href: '/dashboard/provider/staff',
+    icon: Users,
   },
   {
     label: 'Analytics',
@@ -67,6 +79,23 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
     .toUpperCase()
     .slice(0, 2) || 'SP';
 
+  const isStaff = (user as any)?.role === 'PROVIDER_STAFF';
+
+  const visibleNavItems = isStaff
+    ? [
+        {
+          label: 'Shipment Dept',
+          href: '/dashboard/provider/shipments',
+          icon: Truck,
+        },
+        {
+          label: 'Orders (View Only)',
+          href: '/dashboard/provider/orders',
+          icon: ShoppingBag,
+        },
+      ]
+    : navItems;
+
   const handleLogout = () => {
     dispatch(logout());
     router.push('/login');
@@ -92,7 +121,7 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
         {/* Top Header / Logo */}
         <div>
           <div className="h-16 px-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
-            <Link href="/dashboard/provider" className="flex items-center gap-2">
+            <Link href={isStaff ? '/dashboard/provider/shipments' : '/dashboard/provider'} className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-sm">
                 SP
               </div>
@@ -101,7 +130,7 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
                   SHOP.CO
                 </span>
                 <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                  Provider Portal
+                  {isStaff ? 'Shipment Staff' : 'Provider Portal'}
                 </span>
               </div>
             </Link>
@@ -119,9 +148,9 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
           {/* Navigation Links */}
           <nav className="p-4 space-y-1.5">
             <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              Menu
+              {isStaff ? 'Shipment Tasks' : 'Menu'}
             </div>
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = item.href === pathname;
 
@@ -165,19 +194,21 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
             <ExternalLink size={13} className="text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors" />
           </Link>
 
-          {/* Provider Status Card */}
+          {/* Provider / Staff Status Card */}
           <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-800/40">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1">
                 <Sparkles size={12} className="text-amber-600 dark:text-amber-400" />
-                Store Status
+                {isStaff ? 'Staff Portal' : 'Store Status'}
               </span>
               <span className="text-[10px] font-bold bg-amber-200/70 dark:bg-amber-800/40 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full">
-                Active Partner
+                {isStaff ? 'Shipment Staff' : 'Active Partner'}
               </span>
             </div>
             <p className="text-[11px] text-amber-700 dark:text-amber-400/90 mt-1 leading-snug">
-              Catalog & merchant tools synced with SHOP.CO
+              {isStaff
+                ? 'Assigned to shipment departure & checkpoints'
+                : 'Catalog & merchant tools synced with SHOP.CO'}
             </p>
           </div>
 

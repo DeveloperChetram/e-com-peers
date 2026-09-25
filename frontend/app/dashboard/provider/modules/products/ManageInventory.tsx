@@ -92,8 +92,12 @@ export default function ManageInventory() {
     }, 4000);
   };
 
+  const { user } = useAppSelector((state) => state.auth);
+  const isStaff = (user as any)?.role === 'PROVIDER_STAFF';
+
   // Basic fetch function: updates Redux store
   const fetchInventory = async () => {
+    if (isStaff) return;
     dispatch(setLoading(true));
     try {
       const [productsData, categoriesData] = await Promise.all([
@@ -110,8 +114,10 @@ export default function ManageInventory() {
   };
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
+    if (!isStaff) {
+      fetchInventory();
+    }
+  }, [isStaff]);
 
   // Filter products directly from Redux state
   const filteredProducts = useMemo(() => {
@@ -230,6 +236,26 @@ export default function ManageInventory() {
       setDeleting(false);
     }
   };
+
+  if (isStaff) {
+    return (
+      <div className="bg-white dark:bg-[#161922] p-12 rounded-3xl border border-gray-200 dark:border-gray-800 text-center max-w-md mx-auto my-12 space-y-4 shadow-sm">
+        <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
+          <Package size={28} />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Store Owner Access Only</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Product catalog and inventory management are exclusively handled by the store owner. As a staff member, your responsibility is managing the shipment department.
+        </p>
+        <Link
+          href="/dashboard/provider/shipments"
+          className="inline-block px-5 py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 transition-opacity"
+        >
+          Go to Shipment Department
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -132,7 +132,10 @@ export class UserService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { provider: true },
+      include: {
+        provider: true,
+        provider_member: { include: { provider: true } },
+      },
     });
 
     if (!user) {
@@ -155,11 +158,16 @@ export class UserService {
       );
     }
 
-    // 2. Provider login flow (from provider login page)
+    // 2. Provider & Staff login flow (from provider login page)
     if (dto.isProvider) {
-      if (user.role !== 'PROVIDER' && !user.provider) {
+      const isOwner = user.role === 'PROVIDER' || !!user.provider;
+      const isStaff =
+        user.role === 'PROVIDER_STAFF' ||
+        (user.provider_member && user.provider_member.length > 0);
+
+      if (!isOwner && !isStaff) {
         throw new UnauthorizedException(
-          'No provider account found for this email. Please log in as a customer or register as a provider.',
+          'No provider or staff account found for this email. Please log in as a customer or register as a provider.',
         );
       }
 
@@ -173,7 +181,7 @@ export class UserService {
       const { password, ...userWithoutPassword } = user;
 
       return {
-        message: 'Provider logged in successfully',
+        message: isStaff ? 'Staff logged in successfully' : 'Provider logged in successfully',
         accessToken,
         redirectTo: '/dashboard/provider',
         user: userWithoutPassword,
@@ -187,13 +195,18 @@ export class UserService {
       role: user.role,
     };
 
+    const isStaffOrProvider =
+      user.role === 'PROVIDER' ||
+      user.role === 'PROVIDER_STAFF' ||
+      (user.provider_member && user.provider_member.length > 0);
+
     const accessToken = this.jwtService.sign(payload);
     const { password, ...userWithoutPassword } = user;
 
     return {
       message: 'User logged in successfully',
       accessToken,
-      redirectTo: '/dashboard/user',
+      redirectTo: isStaffOrProvider ? '/dashboard/provider' : '/dashboard/user',
       user: userWithoutPassword,
     };
   }

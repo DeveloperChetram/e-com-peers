@@ -20,7 +20,14 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-import { getMyOrders, OrderResponse, OrderStatus } from '@/apis/orders.api';
+import {
+  getMyOrders,
+  requestCancelOrder,
+  requestReturnOrder,
+  getOrderTracking,
+  OrderResponse,
+  OrderStatus,
+} from '@/apis/orders.api';
 import { resolveImages } from '@/apis/apiClient';
 import { useCart } from '@/hooks/useCart';
 
@@ -37,6 +44,26 @@ export default function UserOrdersPage() {
 
   // Order Details Modal
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+
+  // Tracking Modal State
+  const [trackingOrder, setTrackingOrder] = useState<OrderResponse | null>(null);
+  const [trackingData, setTrackingData] = useState<any>(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+
+  // Return Request Modal State
+  const [returnOrder, setReturnOrder] = useState<OrderResponse | null>(null);
+  const [returnReason, setReturnReason] = useState('');
+  const [returnSubmitting, setReturnSubmitting] = useState(false);
+
+  // Cancel Request Modal State
+  const [cancelOrder, setCancelOrder] = useState<OrderResponse | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
+  // Feedback banner
+  const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(
+    null
+  );
 
   const fetchOrders = async () => {
     try {
@@ -57,6 +84,75 @@ export default function UserOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, [filter]);
+
+  // Open Tracking Modal
+  const handleOpenTracking = async (order: OrderResponse) => {
+    setTrackingOrder(order);
+    try {
+      setTrackingLoading(true);
+      const data = await getOrderTracking(order.id);
+      setTrackingData(data);
+    } catch (err) {
+      console.error('Failed to get tracking info:', err);
+      setTrackingData(null);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  // Submit Cancel Request
+  const handleCancelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cancelOrder) return;
+    try {
+      setCancelSubmitting(true);
+      const res = await requestCancelOrder(cancelOrder.id, cancelReason);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === cancelOrder.id ? { ...o, status: res.order.status } : o))
+      );
+      setCancelOrder(null);
+      setCancelReason('');
+      setFeedback({
+        message: 'Cancellation requested. Awaiting merchant approval.',
+        type: 'success',
+      });
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error('Failed to request cancellation:', err);
+      alert(err?.message || 'Failed to submit cancellation request.');
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
+
+  // Submit Return Request
+  const handleReturnSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!returnOrder) return;
+    if (!returnReason.trim()) {
+      alert('Please provide a reason for return.');
+      return;
+    }
+    try {
+      setReturnSubmitting(true);
+      const res = await requestReturnOrder(returnOrder.id, returnReason);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === returnOrder.id ? { ...o, status: res.order.status } : o))
+      );
+      setReturnOrder(null);
+      setReturnReason('');
+      setFeedback({
+        message: 'Return requested successfully. The merchant will review your request.',
+        type: 'success',
+      });
+      setTimeout(() => setFeedback(null), 4000);
+    } catch (err: any) {
+      console.error('Failed to request return:', err);
+      alert(err?.message || 'Failed to submit return request.');
+    } finally {
+      setReturnSubmitting(false);
+    }
+  };
 
   // Client-side search filtering across order ID, items and address
   const filteredOrders = orders.filter((order) => {
@@ -92,8 +188,17 @@ export default function UserOrdersPage() {
         return 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/50';
       case 'DELIVERED':
         return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50';
-      case 'CANCELLED':
+      case 'CANCEL_REQUESTED':
         return 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50';
+      case 'CANCELLED':
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700';
+      case 'RETURN_REQUESTED':
+        return 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50';
+      case 'RETURN_APPROVED':
+        return 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50';
+      case 'RETURNED':
+      case 'REFUNDED':
+        return 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-200/50 dark:border-teal-800/50';
       default:
         return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
     }
@@ -225,10 +330,10 @@ export default function UserOrdersPage() {
                       #{order.id.slice(0, 12)}
                     </span>
                     <span className="text-xs text-gray-400">•</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    {/* <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                       <Calendar size={12} />
                       {formattedDate}
-                    </span>
+                    </span> */}
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadge(
                         order.status
@@ -296,6 +401,13 @@ export default function UserOrdersPage() {
                     })}
                   </div>
 
+                  {/* Return / Cancellation note if exists */}
+                  {order.returnReason && (
+                    <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-300">
+                      <span className="font-bold">Return/Cancellation Note:</span> "{order.returnReason}"
+                    </div>
+                  )}
+
                   {/* Footer Bar */}
                   <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 truncate">
@@ -305,7 +417,45 @@ export default function UserOrdersPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {/* Track Package Button */}
+                      {order.status !== 'PENDING' && (
+                        <button
+                          onClick={() => handleOpenTracking(order)}
+                          className="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-semibold hover:bg-purple-100 transition-colors text-xs flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Truck size={13} />
+                          <span>Track Package</span>
+                        </button>
+                      )}
+
+                      {/* Request Cancel Button */}
+                      {(order.status === 'PENDING' || order.status === 'CONFIRMED') && (
+                        <button
+                          onClick={() => {
+                            setCancelOrder(order);
+                            setCancelReason('');
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-semibold transition-colors text-xs flex items-center gap-1 cursor-pointer"
+                        >
+                          <X size={13} />
+                          <span>Cancel Order</span>
+                        </button>
+                      )}
+
+                      {/* Request Return Button */}
+                      {order.status === 'DELIVERED' && (
+                        <button
+                          onClick={() => {
+                            setReturnOrder(order);
+                            setReturnReason('');
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-semibold transition-colors text-xs flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Return Item</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="px-3.5 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold transition-colors text-xs flex items-center gap-1.5 cursor-pointer"
@@ -442,6 +592,284 @@ export default function UserOrdersPage() {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Shipment Tracking Modal */}
+      {trackingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl space-y-5 relative my-8 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-950 dark:text-white flex items-center gap-2">
+                  <Truck size={20} className="text-purple-600 dark:text-purple-400" />
+                  <span>Package Tracking</span>
+                </h3>
+                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                  Order #{trackingOrder.id.slice(0, 12)}
+                </p>
+              </div>
+              <button
+                onClick={() => setTrackingOrder(null)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {(() => {
+              const shipmentsList: any[] =
+                trackingData?.shipments && Array.isArray(trackingData.shipments) && trackingData.shipments.length > 0
+                  ? trackingData.shipments
+                  : trackingData?.shipment
+                  ? [trackingData.shipment]
+                  : [];
+
+              if (trackingLoading) {
+                return (
+                  <div className="py-12 flex flex-col items-center justify-center space-y-2">
+                    <Loader2 size={28} className="animate-spin text-purple-600 dark:text-purple-400" />
+                    <p className="text-xs text-gray-500">Retrieving transit tracking updates...</p>
+                  </div>
+                );
+              }
+
+              if (!trackingData || shipmentsList.length === 0) {
+                return (
+                  <div className="py-10 text-center space-y-2">
+                    <Package size={36} className="mx-auto text-gray-400 opacity-60" />
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">Awaiting Shipment Dispatch</p>
+                    <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                      The merchant has accepted your order and is preparing items for dispatch. Tracking details will update here once departed.
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-6">
+                  {shipmentsList.map((shipment: any) => (
+                    <div key={shipment.id} className="space-y-4">
+                      {/* Shipment Meta */}
+                      <div className="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/40 text-xs space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Tracking Code:</span>
+                          <span className="font-mono font-bold text-purple-700 dark:text-purple-300">
+                            {shipment.trackingNumber}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Carrier:</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {shipment.carrier || 'Standard Ground'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Current Status:</span>
+                          <span className="font-bold text-purple-700 dark:text-purple-300">
+                            {shipment.status}
+                          </span>
+                        </div>
+                        {shipment.currentLocation && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Current Facility:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {shipment.currentLocation}
+                            </span>
+                          </div>
+                        )}
+                        {shipment.assignedStaff?.name && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Assigned Handler:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {shipment.assignedStaff.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Checkpoints Timeline */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                          Milestone History ({shipment.logs?.length || 0})
+                        </h4>
+                        {!shipment.logs || shipment.logs.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic">No checkpoint scans logged yet.</p>
+                        ) : (
+                          <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 dark:before:bg-gray-800 max-h-56 overflow-y-auto pr-1">
+                            {shipment.logs.map((log: any, idx: number) => (
+                              <div key={log.id || idx} className="relative group text-xs space-y-0.5">
+                                <div
+                                  className={`absolute -left-6 top-1 w-3 h-3 rounded-full border-2 border-white dark:border-[#161922] ${
+                                    idx === 0 ? 'bg-purple-600' : 'bg-gray-400'
+                                  }`}
+                                />
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-gray-900 dark:text-white">
+                                    {log.status}
+                                  </span>
+                                  {log.location && (
+                                    <span className="text-gray-500 font-medium">
+                                      • {log.location}
+                                    </span>
+                                  )}
+                                  {log.staff?.name && (
+                                    <span className="text-gray-400 text-[10px]">
+                                      (By {log.staff.name})
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-gray-400 block">
+                                  {new Date(log.createdAt).toLocaleString()}
+                                </span>
+                                {log.note && (
+                                  <p className="text-gray-600 dark:text-gray-400 text-[11px] italic">
+                                    "{log.note}"
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-end">
+              <button
+                onClick={() => setTrackingOrder(null)}
+                className="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                Close Tracking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {cancelOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl space-y-5 relative my-8 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-950 dark:text-white">
+                  Cancel Order
+                </h3>
+                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                  Order #{cancelOrder.id.slice(0, 12)}
+                </p>
+              </div>
+              <button
+                onClick={() => setCancelOrder(null)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCancelSubmit} className="space-y-4 text-xs">
+              <p className="text-gray-600 dark:text-gray-400">
+                Are you sure you want to cancel this order? Your request will be forwarded to the merchant for immediate review.
+              </p>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Reason for Cancellation (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Placed order by mistake, changed shipping address..."
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors resize-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelOrder(null)}
+                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  Nevermind
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelSubmitting}
+                  className="px-5 py-2 rounded-full bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {cancelSubmitting && <Loader2 size={13} className="animate-spin" />}
+                  <span>{cancelSubmitting ? 'Requesting...' : 'Confirm Cancellation'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Return Order Modal */}
+      {returnOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl space-y-5 relative my-8 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-950 dark:text-white">
+                  Request Item Return
+                </h3>
+                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                  Order #{returnOrder.id.slice(0, 12)}
+                </p>
+              </div>
+              <button
+                onClick={() => setReturnOrder(null)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleReturnSubmit} className="space-y-4 text-xs">
+              <p className="text-gray-600 dark:text-gray-400">
+                Please provide the reason for returning this item. Once approved by the merchant, our shipment team will guide the return transit and refund process.
+              </p>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Reason for Return <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="e.g. Size didn't fit, defective item, wrong color received..."
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors resize-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReturnOrder(null)}
+                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={returnSubmitting}
+                  className="px-5 py-2 rounded-full bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {returnSubmitting && <Loader2 size={13} className="animate-spin" />}
+                  <span>{returnSubmitting ? 'Submitting...' : 'Submit Return Request'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

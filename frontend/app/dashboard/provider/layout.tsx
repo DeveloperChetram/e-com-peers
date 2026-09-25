@@ -46,7 +46,12 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
   }
 
   // Guard: wrong role
-  if (activeRole && activeRole !== 'PROVIDER') {
+  if (
+    activeRole &&
+    activeRole !== 'PROVIDER' &&
+    activeRole !== 'PROVIDER_STAFF' &&
+    activeRole !== 'ADMIN'
+  ) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0F1117] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white dark:bg-[#161922] p-8 rounded-3xl border border-gray-200 dark:border-gray-800 text-center shadow-lg space-y-4">

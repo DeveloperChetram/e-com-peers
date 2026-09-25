@@ -19,14 +19,22 @@ enum OrderStatus{
   CONFIRMED
   SHIPPED
   DELIVERED
+  CANCEL_REQUESTED
   CANCELLED
+  RETURN_REQUESTED
+  RETURN_APPROVED
+  RETURNED
+  REFUNDED
 }
 
 enum ShipmentStatus{
   PENDING
+  DISPATCHED
   IN_TRANSIT
+  OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
+  RETURN_IN_TRANSIT
   RETURNED
   REFUNDED
 }
@@ -48,7 +56,8 @@ model User {
   cart            Cart[]
   faviorate Faviorate[]
   order Order[]
-  
+  assignedShipments Shipment[] @relation("AssignedStaffShipments")
+  shipmentLogs ShipmentLog[] @relation("StaffShipmentLogs")
 }
 
 
@@ -86,7 +95,7 @@ model ProviderMember {
   id        Int      @id @default(autoincrement())
   providerId String   
   userId    Int    
-  role      String
+  role      String   @default("PROVIDER_STAFF")
   user      User     @relation(fields: [userId], references: [id])
   provider  Provider @relation(fields: [providerId], references: [id])
 }
@@ -153,6 +162,7 @@ model Order{
   addressId String
   address Address @relation(fields:[addressId],references:[id]) 
   status OrderStatus @default(PENDING)
+  returnReason String?
   
   user User @relation(fields: [userId], references: [id])
   provider Provider @relation(fields: [providerId], references: [id])
@@ -175,14 +185,32 @@ model Shipment {
   orderId String
   providerId String
   trackingNumber String @unique()
-  assignedMemberId String
+  carrier String? @default("Standard Ground")
+  assignedMemberId String?
+  assignedStaffId Int?
+  assignedStaff User? @relation("AssignedStaffShipments", fields: [assignedStaffId], references: [id])
   status ShipmentStatus @default(PENDING)
-  startDate DateTime 
-  endDate DateTime 
+  currentLocation String?
+  startDate DateTime @default(now())
+  endDate DateTime? 
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   order Order @relation(fields: [orderId], references: [id])
   provider Provider @relation(fields: [providerId], references: [id])
+  logs ShipmentLog[]
+}
+
+model ShipmentLog {
+  id String @id @default(cuid())
+  shipmentId String
+  staffId Int?
+  status ShipmentStatus
+  location String?
+  note String?
+  createdAt DateTime @default(now())
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  staff User? @relation("StaffShipmentLogs", fields: [staffId], references: [id])
 }

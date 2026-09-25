@@ -260,7 +260,7 @@ export type ProviderMemberScalarWhereWithAggregatesInput = {
 }
 
 export type ProviderMemberCreateInput = {
-  role: string
+  role?: string
   user: Prisma.UserCreateNestedOneWithoutProvider_memberInput
   provider: Prisma.ProviderCreateNestedOneWithoutMembersInput
 }
@@ -269,7 +269,7 @@ export type ProviderMemberUncheckedCreateInput = {
   id?: number
   providerId: string
   userId: number
-  role: string
+  role?: string
 }
 
 export type ProviderMemberUpdateInput = {
@@ -289,7 +289,7 @@ export type ProviderMemberCreateManyInput = {
   id?: number
   providerId: string
   userId: number
-  role: string
+  role?: string
 }
 
 export type ProviderMemberUpdateManyMutationInput = {
@@ -429,14 +429,14 @@ export type ProviderMemberUncheckedUpdateManyWithoutProviderNestedInput = {
 }
 
 export type ProviderMemberCreateWithoutUserInput = {
-  role: string
+  role?: string
   provider: Prisma.ProviderCreateNestedOneWithoutMembersInput
 }
 
 export type ProviderMemberUncheckedCreateWithoutUserInput = {
   id?: number
   providerId: string
-  role: string
+  role?: string
 }
 
 export type ProviderMemberCreateOrConnectWithoutUserInput = {
@@ -476,14 +476,14 @@ export type ProviderMemberScalarWhereInput = {
 }
 
 export type ProviderMemberCreateWithoutProviderInput = {
-  role: string
+  role?: string
   user: Prisma.UserCreateNestedOneWithoutProvider_memberInput
 }
 
 export type ProviderMemberUncheckedCreateWithoutProviderInput = {
   id?: number
   userId: number
-  role: string
+  role?: string
 }
 
 export type ProviderMemberCreateOrConnectWithoutProviderInput = {
@@ -515,7 +515,7 @@ export type ProviderMemberUpdateManyWithWhereWithoutProviderInput = {
 export type ProviderMemberCreateManyUserInput = {
   id?: number
   providerId: string
-  role: string
+  role?: string
 }
 
 export type ProviderMemberUpdateWithoutUserInput = {
@@ -538,7 +538,7 @@ export type ProviderMemberUncheckedUpdateManyWithoutUserInput = {
 export type ProviderMemberCreateManyProviderInput = {
   id?: number
   userId: number
-  role: string
+  role?: string
 }
 
 export type ProviderMemberUpdateWithoutProviderInput = {

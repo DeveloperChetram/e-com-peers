@@ -21,6 +21,9 @@ import {
   MapPin,
   RefreshCw,
   ExternalLink,
+  Send,
+  RotateCcw,
+  ArrowRight,
 } from 'lucide-react';
 import {
   getProviderOrders,
@@ -28,9 +31,21 @@ import {
   OrderResponse,
   OrderStatus,
 } from '@/apis/orders.api';
+import {
+  getProviderStaff,
+  moveToShipment,
+  approveReturnOrCancel,
+  processReturnReceipt,
+  ProviderStaffMember,
+} from '@/apis/provider.api';
 import { resolveImages } from '@/apis/apiClient';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 export default function ProviderOrdersPage() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isStaff = (user as any)?.role === 'PROVIDER_STAFF';
+
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -39,6 +54,9 @@ export default function ProviderOrdersPage() {
   // Filters & search
   const [filter, setFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+
+  // Staff members for assignment
+  const [staffMembers, setStaffMembers] = useState<ProviderStaffMember[]>([]);
 
   // Action loading state (per order ID)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -50,6 +68,17 @@ export default function ProviderOrdersPage() {
 
   // Order Details Modal
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+
+  // Move to Shipment Modal State
+  const [shipmentModalOrder, setShipmentModalOrder] = useState<OrderResponse | null>(null);
+  const [shipmentSubmitting, setShipmentSubmitting] = useState(false);
+  const [shipmentForm, setShipmentForm] = useState({
+    carrier: 'Standard Ground',
+    trackingNumber: '',
+    assignedStaffId: '',
+    currentLocation: 'Main Distribution Hub',
+    note: 'Order confirmed and departed to shipment facility.',
+  });
 
   const fetchOrders = async () => {
     try {
@@ -67,15 +96,26 @@ export default function ProviderOrdersPage() {
     }
   };
 
+  const fetchStaff = async () => {
+    if (isStaff) return;
+    try {
+      const data = await getProviderStaff();
+      setStaffMembers(data || []);
+    } catch (err) {
+      console.error('Failed to fetch staff members:', err);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchStaff();
   }, [filter]);
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
     try {
       setActionLoadingId(orderId);
       setActionFeedback(null);
-      const res = await updateProviderOrderStatus(orderId, status);
+      await updateProviderOrderStatus(orderId, status);
 
       // Update state locally
       setOrders((prev) =>
@@ -97,6 +137,125 @@ export default function ProviderOrdersPage() {
       setActionFeedback({
         id: orderId,
         message: err?.message || 'Failed to update order status.',
+        type: 'error',
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Open Move to Shipment Modal
+  const handleOpenShipmentModal = (order: OrderResponse) => {
+    setShipmentModalOrder(order);
+    const generatedTracking = `TRK-${Date.now().toString().slice(-8)}`;
+    setShipmentForm({
+      carrier: 'Standard Ground',
+      trackingNumber: generatedTracking,
+      assignedStaffId: staffMembers.length > 0 ? String(staffMembers[0].user?.id || '') : '',
+      currentLocation: 'Main Distribution Hub',
+      note: 'Order confirmed and departed to shipment facility.',
+    });
+  };
+
+  // Submit Move to Shipment
+  const handleShipmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shipmentModalOrder) return;
+
+    try {
+      setShipmentSubmitting(true);
+      await moveToShipment({
+        orderId: shipmentModalOrder.id,
+        trackingNumber: shipmentForm.trackingNumber || undefined,
+        carrier: shipmentForm.carrier || undefined,
+        assignedStaffId: shipmentForm.assignedStaffId ? Number(shipmentForm.assignedStaffId) : undefined,
+        currentLocation: shipmentForm.currentLocation || undefined,
+        note: shipmentForm.note || undefined,
+      });
+
+      // Update order locally to SHIPPED
+      setOrders((prev) =>
+        prev.map((o) => (o.id === shipmentModalOrder.id ? { ...o, status: 'SHIPPED' } : o))
+      );
+
+      if (selectedOrder && selectedOrder.id === shipmentModalOrder.id) {
+        setSelectedOrder((prev) => (prev ? { ...prev, status: 'SHIPPED' } : null));
+      }
+
+      setShipmentModalOrder(null);
+      setActionFeedback({
+        id: shipmentModalOrder.id,
+        message: 'Order moved to Shipment Department successfully!',
+        type: 'success',
+      });
+      setTimeout(() => setActionFeedback(null), 4000);
+    } catch (err: any) {
+      console.error('Failed to move order to shipment:', err);
+      alert(err?.message || 'Failed to move order to shipment department.');
+    } finally {
+      setShipmentSubmitting(false);
+    }
+  };
+
+  // Approve / Reject Return or Cancel
+  const handleApproveReturnOrCancel = async (orderId: string, approved: boolean) => {
+    try {
+      setActionLoadingId(orderId);
+      setActionFeedback(null);
+      const res = await approveReturnOrCancel(orderId, { approved });
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: res.order.status } : o))
+      );
+
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder((prev) => (prev ? { ...prev, status: res.order.status } : null));
+      }
+
+      setActionFeedback({
+        id: orderId,
+        message: approved ? 'Request approved successfully.' : 'Request was rejected.',
+        type: 'success',
+      });
+      setTimeout(() => setActionFeedback(null), 3500);
+    } catch (err: any) {
+      console.error('Failed to process return approval:', err);
+      setActionFeedback({
+        id: orderId,
+        message: err?.message || 'Failed to process request.',
+        type: 'error',
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Process physically returned goods
+  const handleProcessReturnReceipt = async (orderId: string, action: 'RETURNED' | 'REFUNDED') => {
+    try {
+      setActionLoadingId(orderId);
+      setActionFeedback(null);
+      const res = await processReturnReceipt(orderId, { action });
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: res.order.status } : o))
+      );
+
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder((prev) => (prev ? { ...prev, status: res.order.status } : null));
+      }
+
+      setActionFeedback({
+        id: orderId,
+        message: action === 'RETURNED' ? 'Marked package received.' : 'Refund completed and order closed.',
+        type: 'success',
+      });
+      setTimeout(() => setActionFeedback(null), 3500);
+    } catch (err: any) {
+      console.error('Failed to process return receipt:', err);
+      setActionFeedback({
+        id: orderId,
+        message: err?.message || 'Failed to update return status.',
         type: 'error',
       });
     } finally {
@@ -127,8 +286,17 @@ export default function ProviderOrdersPage() {
         return 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/50';
       case 'DELIVERED':
         return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50';
-      case 'CANCELLED':
+      case 'CANCEL_REQUESTED':
         return 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50';
+      case 'RETURN_REQUESTED':
+        return 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50';
+      case 'RETURN_APPROVED':
+        return 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50';
+      case 'RETURNED':
+      case 'REFUNDED':
+        return 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-200/50 dark:border-teal-800/50';
+      case 'CANCELLED':
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700';
       default:
         return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
     }
@@ -230,7 +398,17 @@ export default function ProviderOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Status Filter Tabs */}
         <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-full text-xs font-semibold w-fit flex-wrap gap-1">
-          {['ALL', 'PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((st) => (
+          {[
+            'ALL',
+            'PENDING',
+            'CONFIRMED',
+            'SHIPPED',
+            'DELIVERED',
+            'RETURN_REQUESTED',
+            'CANCEL_REQUESTED',
+            'RETURN_APPROVED',
+            'CANCELLED',
+          ].map((st) => (
             <button
               key={st}
               onClick={() => setFilter(st)}
@@ -244,7 +422,10 @@ export default function ProviderOrdersPage() {
                 ? 'All'
                 : st === 'PENDING'
                 ? `Pending (${pendingCount})`
-                : st.charAt(0) + st.slice(1).toLowerCase()}
+                : st
+                    .split('_')
+                    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+                    .join(' ')}
             </button>
           ))}
         </div>
@@ -315,14 +496,14 @@ export default function ProviderOrdersPage() {
                       #{order.id.slice(0, 12)}
                     </span>
                     <span className="text-xs text-gray-400">•</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    {/* <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                       <Calendar size={12} />
                       {new Date(order.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
                       })}
-                    </span>
+                    </span> */}
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadge(
                         order.status
@@ -401,6 +582,17 @@ export default function ProviderOrdersPage() {
                     </div>
                   )}
 
+                  {/* Return / Cancel Reason if requested */}
+                  {order.returnReason && (
+                    <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
+                      <RotateCcw size={15} className="shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                      <div>
+                        <span className="font-bold">Customer Reason:</span>{' '}
+                        <span>"{order.returnReason}"</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Card Footer: Address & Status Action Buttons */}
                   <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 truncate">
@@ -420,47 +612,56 @@ export default function ProviderOrdersPage() {
                         <span>Inspect</span>
                       </button>
 
-                      {/* 1. PENDING: Accept / Reject actions */}
+                      {/* 1. PENDING: Accept / Reject actions (Provider Only) */}
                       {order.status === 'PENDING' && (
-                        <>
-                          <button
-                            onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
-                            disabled={isActionLoading}
-                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-colors text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
-                          >
-                            {isActionLoading ? (
-                              <Loader2 size={13} className="animate-spin" />
-                            ) : (
-                              <Check size={13} className="stroke-[3]" />
-                            )}
-                            <span>Accept Order</span>
-                          </button>
+                        isStaff ? (
+                          <span className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/50">
+                            Awaiting Provider Acceptance
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-colors text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                            >
+                              {isActionLoading ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <Check size={13} className="stroke-[3]" />
+                              )}
+                              <span>Accept Order</span>
+                            </button>
 
-                          <button
-                            onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
-                            disabled={isActionLoading}
-                            className="px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                          >
-                            <X size={13} />
-                            <span>Reject</span>
-                          </button>
-                        </>
+                            <button
+                              onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              <X size={13} />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        )
                       )}
 
-                      {/* 2. CONFIRMED: Mark as Shipped */}
+                      {/* 2. CONFIRMED: Move to Shipment Depart (Provider Only) */}
                       {order.status === 'CONFIRMED' && (
-                        <button
-                          onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
-                          disabled={isActionLoading}
-                          className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 font-bold transition-colors text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
-                        >
-                          {isActionLoading ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : (
+                        isStaff ? (
+                          <span className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
+                            Awaiting Provider Dispatch Handoff
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenShipmentModal(order)}
+                            disabled={isActionLoading}
+                            className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 font-bold transition-colors text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+                          >
                             <Truck size={13} />
-                          )}
-                          <span>Dispatch / Mark Shipped</span>
-                        </button>
+                            <span>Move to Shipment Depart</span>
+                            <ArrowRight size={13} />
+                          </button>
+                        )
                       )}
 
                       {/* 3. SHIPPED: Mark as Delivered */}
@@ -477,6 +678,84 @@ export default function ProviderOrdersPage() {
                           )}
                           <span>Mark Delivered</span>
                         </button>
+                      )}
+
+                      {/* 4. CANCEL_REQUESTED: Provider Approval Only */}
+                      {order.status === 'CANCEL_REQUESTED' && (
+                        isStaff ? (
+                          <span className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/50">
+                            Pending Provider Approval
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleApproveReturnOrCancel(order.id, true)}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              {isActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                              <span>Approve Cancel</span>
+                            </button>
+                            <button
+                              onClick={() => handleApproveReturnOrCancel(order.id, false)}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              <X size={13} />
+                              <span>Decline Cancel</span>
+                            </button>
+                          </>
+                        )
+                      )}
+
+                      {/* 5. RETURN_REQUESTED: Provider Approval Only */}
+                      {order.status === 'RETURN_REQUESTED' && (
+                        isStaff ? (
+                          <span className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200/50 dark:border-orange-800/50">
+                            Pending Provider Approval
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleApproveReturnOrCancel(order.id, true)}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              {isActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                              <span>Approve Return</span>
+                            </button>
+                            <button
+                              onClick={() => handleApproveReturnOrCancel(order.id, false)}
+                              disabled={isActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              <X size={13} />
+                              <span>Reject Return</span>
+                            </button>
+                          </>
+                        )
+                      )}
+
+                      {/* 6. RETURN_APPROVED: Staff receives returned goods */}
+                      {order.status === 'RETURN_APPROVED' && (
+                        <>
+                          <button
+                            onClick={() => handleProcessReturnReceipt(order.id, 'RETURNED')}
+                            disabled={isActionLoading}
+                            className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            {isActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Package size={13} />}
+                            <span>Confirm Goods Received</span>
+                          </button>
+                          <button
+                            onClick={() => handleProcessReturnReceipt(order.id, 'REFUNDED')}
+                            disabled={isActionLoading}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-colors text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Process Refund</span>
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -577,7 +856,7 @@ export default function ProviderOrdersPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {selectedOrder.status === 'PENDING' && (
+                {selectedOrder.status === 'PENDING' && !isStaff && (
                   <>
                     <button
                       onClick={() => handleUpdateStatus(selectedOrder.id, 'CONFIRMED')}
@@ -601,6 +880,126 @@ export default function ProviderOrdersPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move to Shipment Depart Modal */}
+      {shipmentModalOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl space-y-5 relative my-8 animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-950 dark:text-white flex items-center gap-2">
+                  <Truck size={20} className="text-purple-600 dark:text-purple-400" />
+                  <span>Move to Shipment Depart</span>
+                </h3>
+                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                  Order #{shipmentModalOrder.id.slice(0, 12)} • {shipmentModalOrder.items?.length || 0} items
+                </p>
+              </div>
+              <button
+                onClick={() => setShipmentModalOrder(null)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleShipmentSubmit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                    Carrier / Logistics Partner
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={shipmentForm.carrier}
+                    onChange={(e) => setShipmentForm({ ...shipmentForm, carrier: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                    Tracking Number
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={shipmentForm.trackingNumber}
+                    onChange={(e) => setShipmentForm({ ...shipmentForm, trackingNumber: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-mono focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Assign Staff Member (Shipment Department)
+                </label>
+                <select
+                  value={shipmentForm.assignedStaffId}
+                  onChange={(e) => setShipmentForm({ ...shipmentForm, assignedStaffId: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                >
+                  <option value="">-- No specific staff assigned --</option>
+                  {staffMembers.map((st) => (
+                    <option key={st.id} value={st.user?.id}>
+                      {st.user?.name} ({st.user?.email}) - {st.role}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Assigned staff can track this package and log checkpoints from their shipment portal.
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Departure Location / Origin Facility
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipmentForm.currentLocation}
+                  onChange={(e) => setShipmentForm({ ...shipmentForm, currentLocation: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Dispatch Note / Checkpoint Entry
+                </label>
+                <textarea
+                  rows={2}
+                  value={shipmentForm.note}
+                  onChange={(e) => setShipmentForm({ ...shipmentForm, note: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors resize-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShipmentModalOrder(null)}
+                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={shipmentSubmitting}
+                  className="px-5 py-2 rounded-full bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {shipmentSubmitting && <Loader2 size={13} className="animate-spin" />}
+                  <span>{shipmentSubmitting ? 'Dispatching...' : 'Dispatch to Shipment'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -17,13 +17,25 @@ import {
   Truck,
 } from 'lucide-react';
 import { getProviderOrders, OrderResponse } from '@/apis/orders.api';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 export default function Overview() {
+  const router = useRouter();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isStaff = (user as any)?.role === 'PROVIDER_STAFF';
+
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isStaff) {
+      router.replace('/dashboard/provider/shipments');
+      return;
+    }
+
     const loadOverview = async () => {
       try {
         setLoading(true);
@@ -38,7 +50,7 @@ export default function Overview() {
     };
 
     loadOverview();
-  }, []);
+  }, [isStaff, router]);
 
   const totalRevenue = orders.reduce((sum, order) => {
     const orderSum = (order.items || []).reduce(

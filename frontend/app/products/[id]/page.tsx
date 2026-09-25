@@ -107,15 +107,9 @@ export default function ProductDetailPage() {
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   // Computed images for gallery preview
-  const primaryImage = product?.imageUrl
-    ? resolveImages(product.imageUrl)
-    : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  const primaryImage = resolveImages(product?.imageUrl)
 
-  const galleryImages = [
-    primaryImage,
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-  ];
+  const galleryImages = [primaryImage];
 
   const currentDisplayImage = galleryImages[selectedImageIndex] || primaryImage;
 
@@ -337,36 +331,20 @@ export default function ProductDetailPage() {
                   {product.name}
                 </h1>
 
-                {/* Rating & In-Stock */}
-                <div className="flex items-center gap-3 text-xs pt-1">
-                  <div className="flex items-center gap-1 text-amber-500 font-bold">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <span className="text-gray-900 dark:text-white font-extrabold ml-1">4.9</span>
-                    <span className="text-gray-400 font-normal">(142 customer reviews)</span>
-                  </div>
-                  <span className="text-gray-300 dark:text-gray-700">•</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    In Stock & Ready to Ship
-                  </span>
-                </div>
+             
               </div>
 
               {/* Price Block */}
               <div className="p-5 rounded-2xl bg-gray-50/80 dark:bg-[#161922] border border-gray-200/80 dark:border-gray-800 flex items-baseline gap-4">
                 <span className="text-3xl sm:text-4xl font-black text-gray-950 dark:text-white tracking-tight">
-                  ${Number(product.price).toFixed(2)}
+                  ${Number(product.price).toFixed(2)} /-
                 </span>
-                <span className="text-base text-gray-400 line-through">
+                {/* <span className="text-base text-gray-400 line-through">
                   ${(Number(product.price) * 1.2).toFixed(2)}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-black text-white dark:bg-white dark:text-black">
                   Save 20%
-                </span>
+                </span> */}
               </div>
 
               {/* Description Preview */}
@@ -375,51 +353,7 @@ export default function ProductDetailPage() {
               </p>
 
               {/* Color Selection */}
-              <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-gray-700 dark:text-gray-300">Color Palette:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{selectedColor}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {colors.map((c) => (
-                    <button
-                      key={c.name}
-                      onClick={() => setSelectedColor(c.name)}
-                      className={`w-9 h-9 rounded-full ${c.bg} border-2 transition-all cursor-pointer relative ${
-                        selectedColor === c.name
-                          ? 'ring-2 ring-black dark:ring-white scale-110 shadow-sm'
-                          : 'hover:scale-105 opacity-80 hover:opacity-100'
-                      }`}
-                      title={c.name}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Size Selection */}
-              <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-gray-700 dark:text-gray-300">Select Size:</span>
-                  <button className="text-[11px] text-gray-500 hover:text-black dark:hover:text-white underline font-semibold">
-                    Size Guide
-                  </button>
-                </div>
-                <div className="grid grid-cols-6 gap-2">
-                  {sizes.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSelectedSize(s)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        selectedSize === s
-                          ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-xs'
-                          : 'bg-white dark:bg-[#161922] border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+           
 
               {/* Quantity & CTA Buttons */}
               <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-800">
@@ -495,7 +429,45 @@ export default function ProductDetailPage() {
         {/* ========================================================= */}
         {/* 4. DETAILS, SPECS & REVIEWS TABS                          */}
         {/* ========================================================= */}
-        {product && (
+   
+        {/* ========================================================= */}
+        {/* 5. RELATED PRODUCTS SECTION                               */}
+        {/* ========================================================= */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-20 pt-12 border-t border-gray-200/80 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
+                  You Might Also Like
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  Discover more handpicked items from our marketplace catalog.
+                </p>
+              </div>
+
+              <Link
+                href="/products"
+                className="text-xs font-bold text-black dark:text-white hover:underline flex items-center gap-1"
+              >
+                <span>View All</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((rel) => (
+                <ProductCard
+                  key={rel.id}
+                  product={rel}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+
+     {product && (
           <section className="mt-16 pt-10 border-t border-gray-200/80 dark:border-gray-800">
             {/* Tabs Nav */}
             <div className="flex items-center justify-center gap-3 pb-8">
@@ -615,42 +587,6 @@ export default function ProductDetailPage() {
           </section>
         )}
 
-        {/* ========================================================= */}
-        {/* 5. RELATED PRODUCTS SECTION                               */}
-        {/* ========================================================= */}
-        {relatedProducts.length > 0 && (
-          <section className="mt-20 pt-12 border-t border-gray-200/80 dark:border-gray-800">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
-                  You Might Also Like
-                </h2>
-                <p className="text-xs text-gray-400 mt-1">
-                  Discover more handpicked items from our marketplace catalog.
-                </p>
-              </div>
-
-              <Link
-                href="/products"
-                className="text-xs font-bold text-black dark:text-white hover:underline flex items-center gap-1"
-              >
-                <span>View All</span>
-                <ChevronRight size={14} />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((rel) => (
-                <ProductCard
-                  key={rel.id}
-                  product={rel}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-      </main>
 
       {/* ========================================================= */}
       {/* 6. STORE FOOTER                                           */}

@@ -13,6 +13,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { AdminModule } from './admin/admin.module';
 import { AdminController } from './admin/admin.controller';
 import { OrderModule } from './order/order.module';
+import { ProviderModule } from './provider/provider.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -29,6 +30,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     CategoriesModule,
     AdminModule,
     OrderModule,
+    ProviderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -39,7 +41,7 @@ export class AppModule implements NestModule {
     consumer.apply(LoggerMiddleware).forRoutes('*');
 
     // 2. ProviderMiddleware - only PROVIDER, PROVIDER_STAFF or ADMIN role
-    //    Protects provider inventory management (create, read own, update, publish, delete) and provider orders
+    //    Protects provider inventory management, provider orders, staff, and shipments
     consumer
       .apply(ProviderMiddleware)
       .forRoutes(
@@ -52,6 +54,8 @@ export class AppModule implements NestModule {
         { path: 'products/:id', method: RequestMethod.DELETE },
         { path: 'orders/provider', method: RequestMethod.ALL },
         { path: 'orders/provider/*', method: RequestMethod.ALL },
+        { path: 'provider', method: RequestMethod.ALL },
+        { path: 'provider/*', method: RequestMethod.ALL },
       );
 
     // 3. AdminMiddleware - only ADMIN role
@@ -73,6 +77,8 @@ export class AppModule implements NestModule {
         { path: 'orders/provider/*', method: RequestMethod.ALL },
         { path: 'orders/admin', method: RequestMethod.ALL },
         { path: 'orders/admin/*', method: RequestMethod.ALL },
+        { path: 'provider', method: RequestMethod.ALL },
+        { path: 'provider/*', method: RequestMethod.ALL },
       )
       .forRoutes(
         { path: 'user/profile', method: RequestMethod.GET },

@@ -42,15 +42,31 @@ export class ProviderMiddleware implements NestMiddleware {
         throw new UnauthorizedException('Invalid or expired token user not found');
       }
 
-      const provider = await this.prisma.provider.findUnique({
+      let provider = await this.prisma.provider.findUnique({
         where: { userId: payload.id },
       });
 
+      let staffMember: any = null;
       if (!provider) {
-        throw new ForbiddenException('Access denied: Provider not found');
+        staffMember = await this.prisma.providerMember.findFirst({
+          where: { userId: payload.id },
+          include: { provider: true },
+        });
+        if (staffMember) {
+          provider = staffMember.provider;
+        }
+      }
+
+      if (!provider) {
+        throw new ForbiddenException('Access denied: Provider store not found');
       }
       
-      (req as any).user = {...user,provider: { ...provider}};
+      (req as any).user = {
+        ...user,
+        provider: { ...provider },
+        isStaff: !!staffMember,
+        staffRole: staffMember?.role || user.role,
+      };
       next();
     } catch (err) {
       if (err instanceof ForbiddenException) throw err;

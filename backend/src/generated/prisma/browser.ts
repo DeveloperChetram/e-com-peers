@@ -77,3 +77,8 @@ export type OrderItem = Prisma.OrderItemModel
  * 
  */
 export type Shipment = Prisma.ShipmentModel
+/**
+ * Model ShipmentLog
+ * 
+ */
+export type ShipmentLog = Prisma.ShipmentLogModel

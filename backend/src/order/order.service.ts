@@ -304,6 +304,83 @@ export class OrderService {
     };
   }
 
+  // 5. Customer requests cancellation or return
+  async requestReturnOrCancel(
+    userId: number,
+    orderId: string,
+    type: 'CANCEL' | 'RETURN',
+    reason?: string
+  ) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const nextStatus =
+      type === 'CANCEL' ? OrderStatus.CANCEL_REQUESTED : OrderStatus.RETURN_REQUESTED;
+
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: nextStatus,
+        returnReason:
+          reason?.trim() ||
+          `${type === 'CANCEL' ? 'Cancellation' : 'Return'} requested by customer`,
+      },
+      include: {
+        items: { include: { product: true } },
+        provider: true,
+      },
+    });
+
+    return {
+      message: `${type === 'CANCEL' ? 'Cancellation' : 'Return'} request submitted for store review`,
+      order: updated,
+    };
+  }
+
+  // 6. Customer views tracking details & checkpoints
+  async getOrderTracking(userId: number, orderId: string) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        shipment: {
+          include: {
+            assignedStaff: {
+              select: { id: true, name: true, email: true },
+            },
+            logs: {
+              include: {
+                staff: {
+                  select: { id: true, name: true },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return {
+      orderId: order.id,
+      status: order.status,
+      shipment: order.shipment?.[0] || null,
+      shipments: order.shipment || [],
+    };
+  }
+
   // ==========================================
   // PROVIDER ORDER METHODS
   // ==========================================

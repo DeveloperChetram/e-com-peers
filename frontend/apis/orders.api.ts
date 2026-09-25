@@ -7,7 +7,23 @@ export type OrderStatus =
   | 'CONFIRMED'
   | 'SHIPPED'
   | 'DELIVERED'
-  | 'CANCELLED';
+  | 'CANCEL_REQUESTED'
+  | 'CANCELLED'
+  | 'RETURN_REQUESTED'
+  | 'RETURN_APPROVED'
+  | 'RETURNED'
+  | 'REFUNDED';
+
+export type ShipmentStatus =
+  | 'PENDING'
+  | 'DISPATCHED'
+  | 'IN_TRANSIT'
+  | 'OUT_FOR_DELIVERY'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'RETURN_IN_TRANSIT'
+  | 'RETURNED'
+  | 'REFUNDED';
 
 export interface OrderItem {
   productId: string;
@@ -51,6 +67,7 @@ export interface OrderResponse {
   addressId: string;
   addressDetail: string;
   status: OrderStatus;
+  returnReason?: string | null;
   createdAt: string;
   updatedAt: string;
   items: OrderItemResponse[];
@@ -71,6 +88,7 @@ export interface OrderResponse {
     zip: string;
     country: string;
   };
+  shipments?: any[];
 }
 
 export interface OrdersListResponse {
@@ -104,6 +122,63 @@ export const cancelOrder = async (
   apiClient(`/orders/${id}/cancel`, {
     method: 'PATCH',
   });
+
+export const requestCancelOrder = async (
+  id: string,
+  reason?: string
+): Promise<{ message: string; order: OrderResponse }> =>
+  apiClient(`/orders/${id}/request-cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+
+export const requestReturnOrder = async (
+  id: string,
+  reason: string
+): Promise<{ message: string; order: OrderResponse }> =>
+  apiClient(`/orders/${id}/request-return`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+
+export const getOrderTracking = async (
+  id: string
+): Promise<{
+  orderId: string;
+  status: OrderStatus;
+  shipment?: {
+    id: string;
+    trackingNumber: string;
+    carrier: string;
+    status: ShipmentStatus;
+    currentLocation?: string;
+    assignedStaff?: { id: number; name: string };
+    logs: Array<{
+      id: string;
+      status: ShipmentStatus;
+      location?: string;
+      note?: string;
+      createdAt: string;
+      staff?: { id: number; name: string };
+    }>;
+  };
+  shipments: Array<{
+    id: string;
+    trackingNumber: string;
+    carrier: string;
+    status: ShipmentStatus;
+    currentLocation?: string;
+    assignedStaff?: { id: number; name: string };
+    logs: Array<{
+      id: string;
+      status: ShipmentStatus;
+      location?: string;
+      note?: string;
+      createdAt: string;
+      staff?: { id: number; name: string };
+    }>;
+  }>;
+}> => apiClient(`/orders/${id}/tracking`);
 
 // ─── Provider Order APIs ──────────────────────────────────────────────────────
 

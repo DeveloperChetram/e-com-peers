@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -43,12 +44,18 @@ export class OrderController {
   }
 
   // PATCH /orders/provider/:id/status - Update order status (CONFIRMED, SHIPPED, DELIVERED, CANCELLED)
+  // Only Provider owner can accept/reject/modify order status directly
   @Patch('provider/:id/status')
   async updateProviderOrderStatus(
     @Req() req: any,
     @Param('id') id: string,
     @Body() dto: UpdateOrderStatusDto,
   ) {
+    if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
+      throw new ForbiddenException(
+        'Provider staff cannot accept or reject orders. Only the store provider can perform this action.',
+      );
+    }
     const providerId = req.user?.provider?.id;
     return this.orderService.updateProviderOrderStatus(providerId, id, dto.status);
   }
@@ -115,10 +122,39 @@ export class OrderController {
     return this.orderService.getOrder(userId, id);
   }
 
-  // PATCH /orders/:id/cancel - Cancel pending order
+  // PATCH /orders/:id/cancel - Direct cancellation for pending orders
   @Patch(':id/cancel')
   async cancelOrder(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.id;
     return this.orderService.cancelOrder(userId, id);
+  }
+
+  // POST /orders/:id/request-cancel - Customer requests cancellation with reason
+  @Post(':id/request-cancel')
+  async requestCancel(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body('reason') reason?: string
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.requestReturnOrCancel(userId, id, 'CANCEL', reason);
+  }
+
+  // POST /orders/:id/request-return - Customer requests return with reason
+  @Post(':id/request-return')
+  async requestReturn(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body('reason') reason?: string
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.requestReturnOrCancel(userId, id, 'RETURN', reason);
+  }
+
+  // GET /orders/:id/tracking - Customer views shipment tracking timeline
+  @Get(':id/tracking')
+  async getOrderTracking(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user?.id;
+    return this.orderService.getOrderTracking(userId, id);
   }
 }

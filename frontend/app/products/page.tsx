@@ -36,7 +36,6 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [maxPrice, setMaxPrice] = useState<number>(1000);
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,18 +89,7 @@ export default function ProductsPage() {
       );
     }
 
-    // Price Filter
-    result = result.filter((p) => Number(p.price || 0) <= maxPrice);
-
-    // Sorting
-    if (sortBy === 'price-asc') {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
-    } else if (sortBy === 'price-desc') {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
-    } else if (sortBy === 'name-asc') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
+ 
     return result;
   }, [products, searchQuery, selectedCategory, maxPrice, sortBy]);
 
@@ -289,7 +277,7 @@ export default function ProductsPage() {
 
           {/* Sort & Mobile Filter Toggle */}
           <div className="flex items-center gap-2 justify-between lg:justify-end">
-            {/* Sort Dropdown */}
+{/*            
             <div className="flex items-center gap-2 text-xs font-semibold">
               <span className="text-gray-400 hidden sm:inline">Sort:</span>
               <div className="relative">
@@ -308,10 +296,10 @@ export default function ProductsPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Price Filter Pill */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 text-xs font-semibold shadow-2xs">
+            {/* <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 text-xs font-semibold shadow-2xs">
               <span className="text-gray-400">Max:</span>
               <span className="font-bold">${maxPrice}</span>
               <input
@@ -323,7 +311,7 @@ export default function ProductsPage() {
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-20 accent-black dark:accent-white cursor-pointer"
               />
-            </div>
+            </div> */}
 
             {/* Reset Filters button if modified */}
             {(selectedCategory !== 'ALL' || searchQuery || sortBy !== 'featured' || maxPrice < 1000) && (
