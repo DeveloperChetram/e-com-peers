@@ -75,39 +75,39 @@ export default function AddProductForm() {
     loadCategories();
   }, []);
 
- const onSubmit = async (data: CreateProductData) => {
-  setServerError(null);
-  setServerSuccess(null);
+  const onSubmit = async (data: CreateProductData) => {
+    setServerError(null);
+    setServerSuccess(null);
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    formData.append('name', data.name.trim());
-    formData.append('description', data.description.trim());
-    formData.append('price', String(Number(data.price)));
-    formData.append('categoryId', data.categoryId);
-    formData.append('isPublished', String(publishImmediately));
+      formData.append('name', data.name.trim());
+      formData.append('description', data.description.trim());
+      formData.append('price', String(Number(data.price)));
+      formData.append('categoryId', data.categoryId);
+      formData.append('isPublished', String(publishImmediately));
 
-    if (data.image?.[0]) {
-      formData.append('image', data.image[0]);
+      if (data.image?.[0]) {
+        formData.append('image', data.image[0]);
+      }
+
+      await createProduct(formData);
+
+      setServerSuccess(
+        'Product registered successfully! It is now in your inventory pending admin review.',
+      );
+
+      reset();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Failed to publish product. Please try again.';
+
+      setServerError(message);
     }
-
-    await createProduct(formData);
-
-    setServerSuccess(
-      'Product registered successfully! It is now in your inventory pending admin review.',
-    );
-
-    reset();
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : 'Failed to publish product. Please try again.';
-
-    setServerError(message);
-  }
-};
+  };
   return (
     <div className="space-y-6">
       {/* Top Header & Breadcrumb */}
@@ -206,11 +206,10 @@ export default function AddProductForm() {
                   required: 'Product title is required',
                   minLength: { value: 3, message: 'Title must be at least 3 characters' },
                 })}
-                className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
-                  errors.name
+                className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${errors.name
                     ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                     : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
-                }`}
+                  }`}
               />
               {errors.name && (
                 <p className="text-[11px] text-red-500 mt-1">{errors.name.message}</p>
@@ -230,11 +229,10 @@ export default function AddProductForm() {
                   required: 'Product description is required',
                   minLength: { value: 10, message: 'Description must be at least 10 characters' },
                 })}
-                className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all resize-none ${
-                  errors.description
+                className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all resize-none ${errors.description
                     ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                     : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
-                }`}
+                  }`}
               />
               {errors.description && (
                 <p className="text-[11px] text-red-500 mt-1">{errors.description.message}</p>
@@ -268,11 +266,10 @@ export default function AddProductForm() {
                       required: 'Price is required',
                       min: { value: 0.01, message: 'Price must be greater than $0' },
                     })}
-                    className={`w-full pl-8 pr-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
-                      errors.price
+                    className={`w-full pl-8 pr-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${errors.price
                         ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                         : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
-                    }`}
+                      }`}
                   />
                 </div>
                 {errors.price && (
@@ -291,11 +288,10 @@ export default function AddProductForm() {
                     {...register('categoryId', {
                       required: 'Please select a category',
                     })}
-                    className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all cursor-pointer ${
-                      errors.categoryId
+                    className={`w-full px-4 py-2.5 text-xs sm:text-sm bg-gray-50 border rounded-xl focus:bg-white focus:outline-none transition-all cursor-pointer ${errors.categoryId
                         ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                         : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
-                    }`}
+                      }`}
                   >
                     <option value="">Select a category...</option>
                     {categories.map((cat) => (
@@ -344,44 +340,44 @@ export default function AddProductForm() {
                     : 'border-gray-200 focus:border-black focus:ring-1 focus:ring-black'
                 }`}
               /> */}
-                {
+              {
 
 
-          <input
-  id="product-image"
-  type="file"
-  accept="image/*"
-  {...register('image', {
-    required: 'Product image is required',
+                <input
+                  id="product-image"
+                  type="file"
+                  accept="image/*"
+                  {...register('image', {
+                    required: 'Product image is required',
 
-    validate: {
-      fileType: (files) => {
-        const file = files?.[0];
+                    validate: {
+                      fileType: (files) => {
+                        const file = files?.[0];
 
-        if (!file) {
-          return 'Product image is required';
-        }
+                        if (!file) {
+                          return 'Product image is required';
+                        }
 
-        return file.type.startsWith('image/')
-          ? true
-          : 'Only image files are allowed';
-      },
+                        return file.type.startsWith('image/')
+                          ? true
+                          : 'Only image files are allowed';
+                      },
 
-      fileSize: (files) => {
-        const file = files?.[0];
+                      fileSize: (files) => {
+                        const file = files?.[0];
 
-        if (!file) {
-          return 'Product image is required';
-        }
+                        if (!file) {
+                          return 'Product image is required';
+                        }
 
-        return file.size <= 5 * 1024 * 1024
-          ? true
-          : 'Image must be less than 5MB';
-      },
-    },
-  })}
-/>
-                }
+                        return file.size <= 5 * 1024 * 1024
+                          ? true
+                          : 'Image must be less than 5MB';
+                      },
+                    },
+                  })}
+                />
+              }
               {errors.image && (
                 <p className="text-[11px] text-red-500 mt-1">{errors.image.message}</p>
               )}
@@ -393,20 +389,20 @@ export default function AddProductForm() {
                 Live Image Preview
               </span>
               <div className="w-full h-48 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative group">
-          {watchedImageUrl?.[0] ? (
-  <img
-    src={URL.createObjectURL(watchedImageUrl[0])}
-    alt="Preview"
-    className="w-full h-full object-contain p-2"
-  />
-) : (
-  <div className="flex flex-col items-center gap-2 text-gray-400">
-    <ImageIcon size={32} />
-    <span className="text-xs">
-      Select an image to preview
-    </span>
-  </div>
-)}
+                {watchedImageUrl?.[0] ? (
+                  <img
+                    src={URL.createObjectURL(watchedImageUrl[0])}
+                    alt="Preview"
+                    className="w-full h-full object-contain p-2"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                    <ImageIcon size={32} />
+                    <span className="text-xs">
+                      Select an image to preview
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

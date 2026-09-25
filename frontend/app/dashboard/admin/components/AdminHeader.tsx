@@ -2,14 +2,25 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useSelector } from 'react-redux';
 import { Menu, Search, Bell, CheckCircle2, ExternalLink } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeProvider';
+import { RootState } from '@/redux/store';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
 }
 
 export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const displayName = (user as any)?.name || 'Admin Console';
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'AD';
+
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/90 dark:bg-[#161922]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-colors">
       {/* Left: Mobile Toggle & Quick Search */}
@@ -71,10 +82,10 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         {/* Admin Profile Avatar */}
         <div className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-800">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 text-white dark:text-black flex items-center justify-center text-xs font-bold shadow-xs">
-            AD
+            {initials}
           </div>
           <div className="hidden xl:block text-left">
-            <p className="text-xs font-bold text-gray-900 dark:text-gray-100 leading-tight">Admin Console</p>
+            <p className="text-xs font-bold text-gray-900 dark:text-gray-100 leading-tight">{displayName}</p>
             <p className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">Super Administrator</p>
           </div>
         </div>

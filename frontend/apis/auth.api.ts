@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from './apiClient';
 
 export interface RegisterUserData {
   name: string;
@@ -9,11 +9,13 @@ export interface RegisterUserData {
 export interface LoginUserData {
   email: string;
   password: string;
+  isProvider?: boolean;
 }
 
 export interface AuthResponse {
   message: string;
   accessToken: string;
+  redirectTo?: string;
   user: {
     id: number | string;
     name: string;
@@ -22,7 +24,7 @@ export interface AuthResponse {
   };
 }
 
-export interface RegisterProviderData{
+export interface RegisterProviderData {
   email: string;
   password: string;
   name: string;
@@ -30,26 +32,37 @@ export interface RegisterProviderData{
   description?: string;
 }
 
-export const registerProvider = async (providerData: RegisterProviderData): Promise<AuthResponse> => {
-  const response = await apiClient("/user/register/provider", {
-    method: "POST",
+export const registerProvider = async (
+  providerData: RegisterProviderData
+): Promise<AuthResponse> =>
+  apiClient('/user/register/provider', {
+    method: 'POST',
     body: JSON.stringify(providerData),
   });
-  return response;
-}
 
-export const registerUser = async (userData: RegisterUserData): Promise<AuthResponse> => {
-  const response = await apiClient("/user/register", {
-    method: "POST",
+export const registerUser = async (
+  userData: RegisterUserData
+): Promise<AuthResponse> =>
+  apiClient('/user/register', {
+    method: 'POST',
     body: JSON.stringify(userData),
   });
-  return response;
-};
 
-export const loginUser = async (userData: LoginUserData): Promise<AuthResponse> => {
-  const response = await apiClient("/user/login", {
-    method: "POST",
+export const loginUser = async (
+  userData: LoginUserData
+): Promise<AuthResponse> =>
+  apiClient('/user/login', {
+    method: 'POST',
     body: JSON.stringify(userData),
   });
-  return response;
-};
+
+export const loginAdmin = async (
+  adminData: LoginUserData
+): Promise<AuthResponse> =>
+  apiClient('/admin/login', {
+    method: 'POST',
+    body: JSON.stringify(adminData),
+  });
+
+export const getUserProfile = async (): Promise<any> =>
+  apiClient('/user/profile');

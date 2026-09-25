@@ -20,4 +20,7 @@ export class CategoriesService {
         return await this.prisma.category.findMany()
     }
 
+    async getCategories(){
+        return await this.prisma.category.findMany()
+    }
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
@@ -5,15 +7,20 @@ import { SearchBar } from './ui/SearchBar';
 import Link from 'next/link';
 import DashboardButton from './ui/DashboardButton';
 
+import { useAppSelector } from '@/redux/hooks';
+import { selectTotalItems } from '@/redux/slices/cart.slice';
+
 const ShopUI = () => {
+  const totalItems = useAppSelector(selectTotalItems);
+
   return (
     <div className="min-h-screen bg-white font-sans text-black">
       {/* HEADER */}
       <header className="flex items-center justify-between px-4 py-4 md:px-16 lg:px-24">
         {/* Logo */}
-        <div className="text-3xl font-black tracking-tighter uppercase">
+        <Link href="/" className="text-3xl font-black tracking-tighter uppercase">
           SHOP.CO
-        </div>
+        </Link>
 
         {/* Navigation - Hidden on mobile */}
         <nav className="hidden md:flex space-x-6 text-sm font-medium items-center">
@@ -31,9 +38,14 @@ const ShopUI = () => {
         {/* Icons */}
         <div className="flex items-center space-x-4">
           <Search size={24} className="sm:hidden text-black" />
-          <button aria-label="Cart" className="hover:text-gray-600 transition-colors">
+          <Link href="/cart" aria-label="Cart" className="relative hover:text-gray-600 transition-colors p-1">
             <ShoppingCart size={24} />
-          </button>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black text-white text-[10px] font-black flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </Link>
           <Link href="/login" aria-label="User Profile / Sign In" className="hover:text-gray-600 transition-colors">
             <User size={24} />
           </Link>
@@ -53,13 +65,13 @@ const ShopUI = () => {
             Browse through our diverse range of meticulously crafted garments, designed 
             to bring out your individuality and cater to your sense of style.
           </p>
-          <button className="bg-black text-white w-full md:w-auto px-12 py-4 rounded-full font-medium hover:bg-gray-800 transition-colors mb-10">
+          <Link href="/products" className="bg-black text-white w-full md:w-auto px-12 py-4 rounded-full font-medium hover:bg-gray-800 transition-colors mb-10">
             Shop Now
-          </button>
+          </Link>
           {/* <SearchBar /> */}
 
           {/* Stats */}
-          <div className="flex flex-wrap md:flex-nowrap gap-6 md:gap-8 items-center pb-12 md:pb-24">
+          <div className="flex flex-wrap md:flex-nowrap gap-6 md:gap-8 items-center pb-12 mt-20 md:pb-24">
             <div className="flex flex-col">
               <span className="text-3xl md:text-4xl font-bold">200+</span>
               <span className="text-xs md:text-sm text-gray-500">International Brands</span>

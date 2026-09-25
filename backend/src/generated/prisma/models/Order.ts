@@ -38,7 +38,8 @@ export type OrderMinAggregateOutputType = {
   id: string | null
   userId: number | null
   providerId: string | null
-  address: string | null
+  addressDetail: string | null
+  addressId: string | null
   status: $Enums.OrderStatus | null
 }
 
@@ -46,7 +47,8 @@ export type OrderMaxAggregateOutputType = {
   id: string | null
   userId: number | null
   providerId: string | null
-  address: string | null
+  addressDetail: string | null
+  addressId: string | null
   status: $Enums.OrderStatus | null
 }
 
@@ -54,7 +56,8 @@ export type OrderCountAggregateOutputType = {
   id: number
   userId: number
   providerId: number
-  address: number
+  addressDetail: number
+  addressId: number
   status: number
   _all: number
 }
@@ -72,7 +75,8 @@ export type OrderMinAggregateInputType = {
   id?: true
   userId?: true
   providerId?: true
-  address?: true
+  addressDetail?: true
+  addressId?: true
   status?: true
 }
 
@@ -80,7 +84,8 @@ export type OrderMaxAggregateInputType = {
   id?: true
   userId?: true
   providerId?: true
-  address?: true
+  addressDetail?: true
+  addressId?: true
   status?: true
 }
 
@@ -88,7 +93,8 @@ export type OrderCountAggregateInputType = {
   id?: true
   userId?: true
   providerId?: true
-  address?: true
+  addressDetail?: true
+  addressId?: true
   status?: true
   _all?: true
 }
@@ -183,7 +189,8 @@ export type OrderGroupByOutputType = {
   id: string
   userId: number
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status: $Enums.OrderStatus
   _count: OrderCountAggregateOutputType | null
   _avg: OrderAvgAggregateOutputType | null
@@ -214,8 +221,10 @@ export type OrderWhereInput = {
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.IntFilter<"Order"> | number
   providerId?: Prisma.StringFilter<"Order"> | string
-  address?: Prisma.StringFilter<"Order"> | string
+  addressDetail?: Prisma.StringFilter<"Order"> | string
+  addressId?: Prisma.StringFilter<"Order"> | string
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+  address?: Prisma.XOR<Prisma.AddressScalarRelationFilter, Prisma.AddressWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   provider?: Prisma.XOR<Prisma.ProviderScalarRelationFilter, Prisma.ProviderWhereInput>
   items?: Prisma.OrderItemListRelationFilter
@@ -226,8 +235,10 @@ export type OrderOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
-  address?: Prisma.SortOrder
+  addressDetail?: Prisma.SortOrder
+  addressId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  address?: Prisma.AddressOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   provider?: Prisma.ProviderOrderByWithRelationInput
   items?: Prisma.OrderItemOrderByRelationAggregateInput
@@ -241,8 +252,10 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   userId?: Prisma.IntFilter<"Order"> | number
   providerId?: Prisma.StringFilter<"Order"> | string
-  address?: Prisma.StringFilter<"Order"> | string
+  addressDetail?: Prisma.StringFilter<"Order"> | string
+  addressId?: Prisma.StringFilter<"Order"> | string
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+  address?: Prisma.XOR<Prisma.AddressScalarRelationFilter, Prisma.AddressWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   provider?: Prisma.XOR<Prisma.ProviderScalarRelationFilter, Prisma.ProviderWhereInput>
   items?: Prisma.OrderItemListRelationFilter
@@ -253,7 +266,8 @@ export type OrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
-  address?: Prisma.SortOrder
+  addressDetail?: Prisma.SortOrder
+  addressId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
   _avg?: Prisma.OrderAvgOrderByAggregateInput
@@ -269,14 +283,16 @@ export type OrderScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Order"> | string
   userId?: Prisma.IntWithAggregatesFilter<"Order"> | number
   providerId?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  address?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  addressDetail?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  addressId?: Prisma.StringWithAggregatesFilter<"Order"> | string
   status?: Prisma.EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
 }
 
 export type OrderCreateInput = {
   id?: string
-  address: string
+  addressDetail: string
   status?: $Enums.OrderStatus
+  address: Prisma.AddressCreateNestedOneWithoutOrderInput
   user: Prisma.UserCreateNestedOneWithoutOrderInput
   provider: Prisma.ProviderCreateNestedOneWithoutOrderInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -287,7 +303,8 @@ export type OrderUncheckedCreateInput = {
   id?: string
   userId: number
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   shipment?: Prisma.ShipmentUncheckedCreateNestedManyWithoutOrderInput
@@ -295,8 +312,9 @@ export type OrderUncheckedCreateInput = {
 
 export type OrderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  address?: Prisma.AddressUpdateOneRequiredWithoutOrderNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutOrderNestedInput
   provider?: Prisma.ProviderUpdateOneRequiredWithoutOrderNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -307,7 +325,8 @@ export type OrderUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUncheckedUpdateManyWithoutOrderNestedInput
@@ -317,13 +336,14 @@ export type OrderCreateManyInput = {
   id?: string
   userId: number
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
 }
 
 export type OrderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
@@ -331,7 +351,8 @@ export type OrderUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
@@ -349,7 +370,8 @@ export type OrderCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
-  address?: Prisma.SortOrder
+  addressDetail?: Prisma.SortOrder
+  addressId?: Prisma.SortOrder
   status?: Prisma.SortOrder
 }
 
@@ -361,7 +383,8 @@ export type OrderMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
-  address?: Prisma.SortOrder
+  addressDetail?: Prisma.SortOrder
+  addressId?: Prisma.SortOrder
   status?: Prisma.SortOrder
 }
 
@@ -369,7 +392,8 @@ export type OrderMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
-  address?: Prisma.SortOrder
+  addressDetail?: Prisma.SortOrder
+  addressId?: Prisma.SortOrder
   status?: Prisma.SortOrder
 }
 
@@ -421,6 +445,48 @@ export type OrderUncheckedUpdateManyWithoutUserNestedInput = {
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   update?: Prisma.OrderUpdateWithWhereUniqueWithoutUserInput | Prisma.OrderUpdateWithWhereUniqueWithoutUserInput[]
   updateMany?: Prisma.OrderUpdateManyWithWhereWithoutUserInput | Prisma.OrderUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderCreateNestedManyWithoutAddressInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput> | Prisma.OrderCreateWithoutAddressInput[] | Prisma.OrderUncheckedCreateWithoutAddressInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAddressInput | Prisma.OrderCreateOrConnectWithoutAddressInput[]
+  createMany?: Prisma.OrderCreateManyAddressInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUncheckedCreateNestedManyWithoutAddressInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput> | Prisma.OrderCreateWithoutAddressInput[] | Prisma.OrderUncheckedCreateWithoutAddressInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAddressInput | Prisma.OrderCreateOrConnectWithoutAddressInput[]
+  createMany?: Prisma.OrderCreateManyAddressInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUpdateManyWithoutAddressNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput> | Prisma.OrderCreateWithoutAddressInput[] | Prisma.OrderUncheckedCreateWithoutAddressInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAddressInput | Prisma.OrderCreateOrConnectWithoutAddressInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAddressInput | Prisma.OrderUpsertWithWhereUniqueWithoutAddressInput[]
+  createMany?: Prisma.OrderCreateManyAddressInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAddressInput | Prisma.OrderUpdateWithWhereUniqueWithoutAddressInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAddressInput | Prisma.OrderUpdateManyWithWhereWithoutAddressInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderUncheckedUpdateManyWithoutAddressNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput> | Prisma.OrderCreateWithoutAddressInput[] | Prisma.OrderUncheckedCreateWithoutAddressInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAddressInput | Prisma.OrderCreateOrConnectWithoutAddressInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAddressInput | Prisma.OrderUpsertWithWhereUniqueWithoutAddressInput[]
+  createMany?: Prisma.OrderCreateManyAddressInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAddressInput | Prisma.OrderUpdateWithWhereUniqueWithoutAddressInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAddressInput | Prisma.OrderUpdateManyWithWhereWithoutAddressInput[]
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
@@ -500,8 +566,9 @@ export type OrderUpdateOneRequiredWithoutShipmentNestedInput = {
 
 export type OrderCreateWithoutUserInput = {
   id?: string
-  address: string
+  addressDetail: string
   status?: $Enums.OrderStatus
+  address: Prisma.AddressCreateNestedOneWithoutOrderInput
   provider: Prisma.ProviderCreateNestedOneWithoutOrderInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
   shipment?: Prisma.ShipmentCreateNestedManyWithoutOrderInput
@@ -510,7 +577,8 @@ export type OrderCreateWithoutUserInput = {
 export type OrderUncheckedCreateWithoutUserInput = {
   id?: string
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   shipment?: Prisma.ShipmentUncheckedCreateNestedManyWithoutOrderInput
@@ -549,14 +617,62 @@ export type OrderScalarWhereInput = {
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.IntFilter<"Order"> | number
   providerId?: Prisma.StringFilter<"Order"> | string
-  address?: Prisma.StringFilter<"Order"> | string
+  addressDetail?: Prisma.StringFilter<"Order"> | string
+  addressId?: Prisma.StringFilter<"Order"> | string
   status?: Prisma.EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+}
+
+export type OrderCreateWithoutAddressInput = {
+  id?: string
+  addressDetail: string
+  status?: $Enums.OrderStatus
+  user: Prisma.UserCreateNestedOneWithoutOrderInput
+  provider: Prisma.ProviderCreateNestedOneWithoutOrderInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  shipment?: Prisma.ShipmentCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutAddressInput = {
+  id?: string
+  userId: number
+  providerId: string
+  addressDetail: string
+  status?: $Enums.OrderStatus
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  shipment?: Prisma.ShipmentUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutAddressInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput>
+}
+
+export type OrderCreateManyAddressInputEnvelope = {
+  data: Prisma.OrderCreateManyAddressInput | Prisma.OrderCreateManyAddressInput[]
+  skipDuplicates?: boolean
+}
+
+export type OrderUpsertWithWhereUniqueWithoutAddressInput = {
+  where: Prisma.OrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutAddressInput, Prisma.OrderUncheckedUpdateWithoutAddressInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutAddressInput, Prisma.OrderUncheckedCreateWithoutAddressInput>
+}
+
+export type OrderUpdateWithWhereUniqueWithoutAddressInput = {
+  where: Prisma.OrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutAddressInput, Prisma.OrderUncheckedUpdateWithoutAddressInput>
+}
+
+export type OrderUpdateManyWithWhereWithoutAddressInput = {
+  where: Prisma.OrderScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutAddressInput>
 }
 
 export type OrderCreateWithoutProviderInput = {
   id?: string
-  address: string
+  addressDetail: string
   status?: $Enums.OrderStatus
+  address: Prisma.AddressCreateNestedOneWithoutOrderInput
   user: Prisma.UserCreateNestedOneWithoutOrderInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
   shipment?: Prisma.ShipmentCreateNestedManyWithoutOrderInput
@@ -565,7 +681,8 @@ export type OrderCreateWithoutProviderInput = {
 export type OrderUncheckedCreateWithoutProviderInput = {
   id?: string
   userId: number
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
   shipment?: Prisma.ShipmentUncheckedCreateNestedManyWithoutOrderInput
@@ -599,8 +716,9 @@ export type OrderUpdateManyWithWhereWithoutProviderInput = {
 
 export type OrderCreateWithoutItemsInput = {
   id?: string
-  address: string
+  addressDetail: string
   status?: $Enums.OrderStatus
+  address: Prisma.AddressCreateNestedOneWithoutOrderInput
   user: Prisma.UserCreateNestedOneWithoutOrderInput
   provider: Prisma.ProviderCreateNestedOneWithoutOrderInput
   shipment?: Prisma.ShipmentCreateNestedManyWithoutOrderInput
@@ -610,7 +728,8 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   id?: string
   userId: number
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
   shipment?: Prisma.ShipmentUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -633,8 +752,9 @@ export type OrderUpdateToOneWithWhereWithoutItemsInput = {
 
 export type OrderUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  address?: Prisma.AddressUpdateOneRequiredWithoutOrderNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutOrderNestedInput
   provider?: Prisma.ProviderUpdateOneRequiredWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUpdateManyWithoutOrderNestedInput
@@ -644,15 +764,17 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   shipment?: Prisma.ShipmentUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutShipmentInput = {
   id?: string
-  address: string
+  addressDetail: string
   status?: $Enums.OrderStatus
+  address: Prisma.AddressCreateNestedOneWithoutOrderInput
   user: Prisma.UserCreateNestedOneWithoutOrderInput
   provider: Prisma.ProviderCreateNestedOneWithoutOrderInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -662,7 +784,8 @@ export type OrderUncheckedCreateWithoutShipmentInput = {
   id?: string
   userId: number
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
@@ -685,8 +808,9 @@ export type OrderUpdateToOneWithWhereWithoutShipmentInput = {
 
 export type OrderUpdateWithoutShipmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  address?: Prisma.AddressUpdateOneRequiredWithoutOrderNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutOrderNestedInput
   provider?: Prisma.ProviderUpdateOneRequiredWithoutOrderNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -696,7 +820,8 @@ export type OrderUncheckedUpdateWithoutShipmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
@@ -704,14 +829,16 @@ export type OrderUncheckedUpdateWithoutShipmentInput = {
 export type OrderCreateManyUserInput = {
   id?: string
   providerId: string
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
 }
 
 export type OrderUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  address?: Prisma.AddressUpdateOneRequiredWithoutOrderNestedInput
   provider?: Prisma.ProviderUpdateOneRequiredWithoutOrderNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUpdateManyWithoutOrderNestedInput
@@ -720,7 +847,8 @@ export type OrderUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUncheckedUpdateManyWithoutOrderNestedInput
@@ -729,21 +857,60 @@ export type OrderUncheckedUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   providerId?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+}
+
+export type OrderCreateManyAddressInput = {
+  id?: string
+  userId: number
+  providerId: string
+  addressDetail: string
+  status?: $Enums.OrderStatus
+}
+
+export type OrderUpdateWithoutAddressInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  user?: Prisma.UserUpdateOneRequiredWithoutOrderNestedInput
+  provider?: Prisma.ProviderUpdateOneRequiredWithoutOrderNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  shipment?: Prisma.ShipmentUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutAddressInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  providerId?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  shipment?: Prisma.ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateManyWithoutAddressInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  providerId?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
 export type OrderCreateManyProviderInput = {
   id?: string
   userId: number
-  address: string
+  addressDetail: string
+  addressId: string
   status?: $Enums.OrderStatus
 }
 
 export type OrderUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  address?: Prisma.AddressUpdateOneRequiredWithoutOrderNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutOrderNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUpdateManyWithoutOrderNestedInput
@@ -752,7 +919,8 @@ export type OrderUpdateWithoutProviderInput = {
 export type OrderUncheckedUpdateWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
   items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   shipment?: Prisma.ShipmentUncheckedUpdateManyWithoutOrderNestedInput
@@ -761,7 +929,8 @@ export type OrderUncheckedUpdateWithoutProviderInput = {
 export type OrderUncheckedUpdateManyWithoutProviderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  address?: Prisma.StringFieldUpdateOperationsInput | string
+  addressDetail?: Prisma.StringFieldUpdateOperationsInput | string
+  addressId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
 }
 
@@ -809,8 +978,10 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   id?: boolean
   userId?: boolean
   providerId?: boolean
-  address?: boolean
+  addressDetail?: boolean
+  addressId?: boolean
   status?: boolean
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
@@ -822,8 +993,10 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   userId?: boolean
   providerId?: boolean
-  address?: boolean
+  addressDetail?: boolean
+  addressId?: boolean
   status?: boolean
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -832,8 +1005,10 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   userId?: boolean
   providerId?: boolean
-  address?: boolean
+  addressDetail?: boolean
+  addressId?: boolean
   status?: boolean
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -842,12 +1017,14 @@ export type OrderSelectScalar = {
   id?: boolean
   userId?: boolean
   providerId?: boolean
-  address?: boolean
+  addressDetail?: boolean
+  addressId?: boolean
   status?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "providerId" | "address" | "status", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "providerId" | "addressDetail" | "addressId" | "status", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Order$itemsArgs<ExtArgs>
@@ -855,10 +1032,12 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
 }
 export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  address?: boolean | Prisma.AddressDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   provider?: boolean | Prisma.ProviderDefaultArgs<ExtArgs>
 }
@@ -866,6 +1045,7 @@ export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Order"
   objects: {
+    address: Prisma.$AddressPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
     provider: Prisma.$ProviderPayload<ExtArgs>
     items: Prisma.$OrderItemPayload<ExtArgs>[]
@@ -875,7 +1055,8 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: string
     userId: number
     providerId: string
-    address: string
+    addressDetail: string
+    addressId: string
     status: $Enums.OrderStatus
   }, ExtArgs["result"]["order"]>
   composites: {}
@@ -1271,6 +1452,7 @@ readonly fields: OrderFieldRefs;
  */
 export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  address<T extends Prisma.AddressDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AddressDefaultArgs<ExtArgs>>): Prisma.Prisma__AddressClient<runtime.Types.Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   provider<T extends Prisma.ProviderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProviderDefaultArgs<ExtArgs>>): Prisma.Prisma__ProviderClient<runtime.Types.Result.GetResult<Prisma.$ProviderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Order$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1307,7 +1489,8 @@ export interface OrderFieldRefs {
   readonly id: Prisma.FieldRef<"Order", 'String'>
   readonly userId: Prisma.FieldRef<"Order", 'Int'>
   readonly providerId: Prisma.FieldRef<"Order", 'String'>
-  readonly address: Prisma.FieldRef<"Order", 'String'>
+  readonly addressDetail: Prisma.FieldRef<"Order", 'String'>
+  readonly addressId: Prisma.FieldRef<"Order", 'String'>
   readonly status: Prisma.FieldRef<"Order", 'OrderStatus'>
 }
     

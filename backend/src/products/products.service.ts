@@ -244,11 +244,35 @@ export class ProductsService {
 
   async getProducts() {
     return this.prisma.product.findMany({
+      where:{
+        isApproved: true,
+        isPublished: true,
+      },
       include: {
         category: true,
         provider: true,
       },
     });
+  }
+
+  async getProductById(id: string) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        id,
+        isApproved: true,
+        isPublished: true,
+      },
+      include: {
+        category: true,
+        provider: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found or unavailable');
+    }
+
+    return product;
   }
 
   async filterProducts(dto: FilterProductDto) {
@@ -257,25 +281,46 @@ export class ProductsService {
     const limit = Number(dto.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const where: any = {
-      ...(dto.name && {
-        name: { contains: dto.name, mode: 'insensitive' as const },
+   const where: any = {
+  // Only approved products
+  isApproved: true,
+
+  // Only published products
+  isPublished: true,
+
+  ...(dto.name && {
+    name: {
+      contains: dto.name,
+      mode: 'insensitive' as const,
+    },
+  }),
+
+  ...(dto.categoryId && {
+    categoryId: dto.categoryId,
+  }),
+
+  ...(dto.providerId && {
+    providerId: dto.providerId,
+  }),
+
+  ...((dto.minPrice !== undefined || dto.maxPrice !== undefined) && {
+    price: {
+      ...(dto.minPrice !== undefined && {
+        gte: Number(dto.minPrice),
       }),
-      ...(dto.categoryId && { categoryId: dto.categoryId }),
-      ...(dto.providerId && { providerId: dto.providerId }),
-      ...((dto.minPrice !== undefined || dto.maxPrice !== undefined) && {
-        price: {
-          ...(dto.minPrice !== undefined && { gte: Number(dto.minPrice) }),
-          ...(dto.maxPrice !== undefined && { lte: Number(dto.maxPrice) }),
-        },
+      ...(dto.maxPrice !== undefined && {
+        lte: Number(dto.maxPrice),
       }),
-    };
+    },
+  }),
+};
 
     if (!isPaginated) {
       const data = await this.prisma.product.findMany({
         where,
         include: { category: true, provider: true },
         orderBy: { price: 'asc' },
+        
       });
       return { data, meta: { total: data.length } };
     }

@@ -77,10 +77,18 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
           password: data.password,
         };
         const res = await registerUser(userPayload);
+        dispatch(
+          setUserAndToken({
+            user: res.user,
+            token: res.accessToken,
+            role: res.user?.role || 'USER',
+          })
+        );
+        setServerSuccess(res?.message || 'Account created! Redirecting to dashboard...');
         setTimeout(() => {
-          router.push('/');
-        }, 2000);
-        return res;
+          router.push('/dashboard/user');
+        }, 800);
+        return;
       }
 
       const providerPayload = {
@@ -91,19 +99,21 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         password: data.password,
       };
       const res = await registerProvider(providerPayload);
-      dispatch(setUserAndToken({user:res.user, token:res.accessToken, role:res.user.role}))
-      
+      dispatch(
+        setUserAndToken({
+          user: res.user,
+          token: res.accessToken,
+          role: res.user?.role || 'PROVIDER',
+        })
+      );
 
       setServerSuccess(
-        res?.message ||
-          (isProviderMode
-            ? 'Provider registration submitted successfully! Redirecting...'
-            : 'Account registered successfully! Redirecting...')
+        res?.message || 'Provider account created! Redirecting to provider portal...'
       );
 
       setTimeout(() => {
-        router.push('/');
-      }, 2000);
+        router.push('/dashboard/provider');
+      }, 800);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
       setServerError(message);

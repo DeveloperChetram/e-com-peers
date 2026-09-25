@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   LayoutDashboard,
   Package,
@@ -15,6 +16,8 @@ import {
   LogOut,
   Sparkles,
 } from 'lucide-react';
+import { RootState } from '@/redux/store';
+import { logout } from '@/redux/slices/auth.slice';
 
 interface ProviderSidebarProps {
   isOpen: boolean;
@@ -51,6 +54,23 @@ const navItems = [
 
 export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const displayName = (user as any)?.name || 'My Provider Store';
+  const displayEmail = (user as any)?.email || 'merchant@shop.co';
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'SP';
+
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push('/login');
+  };
 
   return (
     <>
@@ -165,21 +185,21 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
           <div className="pt-2 flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs font-bold shrink-0">
-                P
+                {initials}
               </div>
               <div className="truncate">
-                <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">My Provider Store</p>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">merchant@shop.co</p>
+                <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{displayEmail}</p>
               </div>
             </div>
 
-            <Link
-              href="/login"
+            <button
+              onClick={handleLogout}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
             >
               <LogOut size={16} />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

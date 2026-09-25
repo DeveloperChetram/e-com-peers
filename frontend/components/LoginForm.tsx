@@ -42,32 +42,15 @@ export function LoginForm({ initialRole }: LoginFormProps) {
 
     try {
       setLoading(true);
-      const res = await loginUser({ email, password });
+      const res = await loginUser({ email, password, isProvider: isProviderMode });
       
-      console.log(res)
-      dispatch(setUserAndToken({user:res.user, token:res.accessToken, role:res.user.role}))
+      dispatch(setUserAndToken({ user: res.user, token: res.accessToken, role: res.user.role }));
       setSuccessMessage(res?.message || 'Login successful! Redirecting...');
 
-      
-      // if (res?.accessToken) {
-      //   localStorage.setItem('accessToken', res.accessToken);
-      //   if (res.user) {
-      //     localStorage.setItem('user', JSON.stringify(res.user));
-      //   }
-      
-      //   document.cookie = `accessToken=${res.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-      // }
-
-      // Redirect after brief delay for visual feedback
-
-      
+      const targetPath = res?.redirectTo || (isProviderMode ? '/dashboard/provider' : '/dashboard/user');
       setTimeout(() => {
-        if (isProviderMode) {
-          router.push('/');
-        } else {
-          router.push('/');
-        }
-      }, 800);
+        router.push(targetPath);
+      }, 600);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in. Please verify your credentials.';
       setErrorMessage(message);

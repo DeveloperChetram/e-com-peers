@@ -1,6 +1,8 @@
-import React from 'react';
-import { Metadata } from 'next';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   ShieldCheck,
   Package,
@@ -9,17 +11,86 @@ import {
   Store,
   Users,
   ChevronRight,
-  TrendingUp,
   Layers,
   ArrowRight,
+  Check,
+  X,
+  Loader2,
 } from 'lucide-react';
-
-export const metadata: Metadata = {
-  title: 'Admin Overview | SHOP.CO Portal',
-  description: 'Manage platform operations, review merchant product approvals, and oversee catalog inventory.',
-};
+import {
+  getAdminStats,
+  getAdminProducts,
+  approveAdminProduct,
+  rejectAdminProduct,
+  AdminProduct,
+} from '@/apis/admin.api';
+import {
+  setStats,
+  setProducts,
+  updateProductInState,
+} from '@/redux/slices/admin.slice';
+import { RootState } from '@/redux/store';
+import { resolveImages } from '@/apis/apiClient';
 
 export default function AdminDashboardPage() {
+  const dispatch = useDispatch();
+  const { stats } = useSelector((state: RootState) => state.admin);
+  const [pendingProducts, setPendingProducts] = useState<AdminProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [statsData, productsRes] = await Promise.all([
+        getAdminStats(),
+        getAdminProducts({ isApproved: false, limit: 5 }),
+      ]);
+      dispatch(setStats(statsData));
+      setPendingProducts(productsRes.data || []);
+    } catch (err) {
+      console.error('Failed to load admin overview data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    try {
+      setActionLoadingId(id);
+      await approveAdminProduct(id);
+      setPendingProducts((prev) => prev.filter((p) => p.id !== id));
+      dispatch(updateProductInState({ id, isApproved: true }));
+      // Refresh stats
+      const updatedStats = await getAdminStats();
+      dispatch(setStats(updatedStats));
+    } catch (err: any) {
+      alert(err.message || 'Failed to approve product');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      setActionLoadingId(id);
+      await rejectAdminProduct(id);
+      setPendingProducts((prev) => prev.filter((p) => p.id !== id));
+      dispatch(updateProductInState({ id, isApproved: false, isPublished: false }));
+      // Refresh stats
+      const updatedStats = await getAdminStats();
+      dispatch(setStats(updatedStats));
+    } catch (err: any) {
+      alert(err.message || 'Failed to reject product');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,19 +123,23 @@ export default function AdminDashboardPage() {
               <Clock size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-3">4</p>
+          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-3">
+            {loading ? '-' : pendingProducts.length}
+          </p>
           <span className="text-[11px] text-gray-400 dark:text-gray-500">Products awaiting review</span>
         </div>
 
         <div className="bg-white dark:bg-[#161922] p-5 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
           <div className="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
-            <span>Active Providers</span>
+            <span>Registered Providers</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <Store size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">32</p>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Active merchant partners</span>
+          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">
+            {loading ? '-' : stats?.providers ?? 0}
+          </p>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Merchant partners</span>
         </div>
 
         <div className="bg-white dark:bg-[#161922] p-5 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
@@ -74,7 +149,9 @@ export default function AdminDashboardPage() {
               <Package size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">128</p>
+          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">
+            {loading ? '-' : stats?.products ?? 0}
+          </p>
           <span className="text-[11px] text-gray-400 dark:text-gray-500">Live products in catalog</span>
         </div>
 
@@ -85,8 +162,10 @@ export default function AdminDashboardPage() {
               <Users size={16} />
             </div>
           </div>
-          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">1,429</p>
-          <span className="text-[11px] text-gray-400 dark:text-gray-500">Registered shoppers</span>
+          <p className="text-2xl font-black text-gray-900 dark:text-white mt-3">
+            {loading ? '-' : stats?.users ?? 0}
+          </p>
+          <span className="text-[11px] text-gray-400 dark:text-gray-500">Registered platform users</span>
         </div>
       </div>
 
@@ -112,58 +191,74 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
-            {[
-              {
-                id: '1',
-                name: 'Sony Wireless Headphones WH-1000XM5',
-                provider: 'Apex Electronics',
-                category: 'Audio',
-                price: '$349.99',
-              },
-              {
-                id: '2',
-                name: 'Minimalist Oak Coffee Table',
-                provider: 'Studio Forma',
-                category: 'Home & Living',
-                price: '$280.00',
-              },
-              {
-                id: '3',
-                name: 'Classic Vintage Leather Backpack',
-                provider: 'Urban Gear Co.',
-                category: 'Bags & Accessories',
-                price: '$110.00',
-              },
-            ].map((item) => (
-              <div
-                key={item.id}
-                className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 shrink-0">
-                    <Package size={18} />
+          {loading ? (
+            <div className="p-8 text-center text-gray-400 flex items-center justify-center gap-2">
+              <Loader2 className="animate-spin" size={18} />
+              <span className="text-xs">Loading queue...</span>
+            </div>
+          ) : pendingProducts.length === 0 ? (
+            <div className="p-8 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+              <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2 opacity-80" />
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">All caught up!</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">No products are currently pending approval.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+              {pendingProducts.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 shrink-0 overflow-hidden relative">
+                      {item.imageUrl ? (
+                        <img
+                          src={resolveImages(item.imageUrl)}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Package size={18} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white line-clamp-1">{item.name}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                        {item.provider?.businessName ? `by ${item.provider.businessName}` : 'Independent seller'} •{' '}
+                        <span className="text-gray-600 dark:text-gray-300">{item.category?.name || 'Uncategorized'}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-900 dark:text-white">{item.name}</p>
-                    <p className="text-[11px] text-gray-400 dark:text-gray-500">
-                      by {item.provider} • <span className="text-gray-600 dark:text-gray-300">{item.category}</span>
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white">{item.price}</span>
-                  <Link
-                    href="/dashboard/admin/approvals"
-                    className="px-3 py-1.5 rounded-lg bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                  >
-                    Review
-                  </Link>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <span className="text-xs font-bold text-gray-900 dark:text-white">
+                      ${Number(item.price).toFixed(2)}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleApprove(item.id)}
+                        disabled={actionLoadingId === item.id}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors flex items-center gap-1 disabled:opacity-50"
+                        title="Approve Listing"
+                      >
+                        {actionLoadingId === item.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                        <span>Approve</span>
+                      </button>
+                      <button
+                        onClick={() => handleReject(item.id)}
+                        disabled={actionLoadingId === item.id}
+                        className="px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-200 text-xs font-semibold transition-colors flex items-center gap-1 disabled:opacity-50"
+                        title="Reject Listing"
+                      >
+                        <X size={13} />
+                        <span>Reject</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick Links Card */}
@@ -175,22 +270,34 @@ export default function AdminDashboardPage() {
           <div className="space-y-2">
             {[
               {
-                label: 'Taxonomy & Categories',
+                label: 'Product Approvals',
+                href: '/dashboard/admin/approvals',
+                icon: Clock,
+                desc: 'Review merchant submissions',
+              },
+              {
+                label: 'Products Catalog',
+                href: '/dashboard/admin/products',
+                icon: Package,
+                desc: 'View all catalog items',
+              },
+              {
+                label: 'Categories',
                 href: '/dashboard/admin/categories',
                 icon: Layers,
-                desc: 'Manage store catalog hierarchy',
+                desc: 'Manage categories & catalog view',
               },
               {
                 label: 'Merchant Directory',
                 href: '/dashboard/admin/providers',
                 icon: Store,
-                desc: 'View active seller stores',
+                desc: 'View seller stores & applications',
               },
               {
                 label: 'User Accounts',
                 href: '/dashboard/admin/users',
                 icon: Users,
-                desc: 'Manage customer credentials',
+                desc: 'Manage roles and credentials',
               },
             ].map((link) => {
               const Icon = link.icon;

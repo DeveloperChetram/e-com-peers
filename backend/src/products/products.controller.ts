@@ -87,6 +87,11 @@ export class ProductsController {
     return this.productsService.getMyProductById(id, user);
   }
 
+  @Get(':id')
+  getProductById(@Param('id') id: string) {
+    return this.productsService.getProductById(id);
+  }
+
   @Patch(':id/publish')
   togglePublish(
     @Param('id') id: string,

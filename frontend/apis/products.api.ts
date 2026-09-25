@@ -44,6 +44,11 @@ export const getAllProducts = async () => {
   }
 };
 
+export const getProductById = async (id: string): Promise<ProductItem> => {
+  const response = await apiClient(`/products/${id}`);
+  return response;
+};
+
 export const getMyProducts = async (params?: {
   search?: string;
   categoryId?: string;

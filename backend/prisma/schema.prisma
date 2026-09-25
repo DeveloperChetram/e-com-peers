@@ -61,6 +61,7 @@ model Address {
   zip String
   country String
   user User @relation(fields: [userId], references: [id])
+  order Order[]
 }
 
 
@@ -148,7 +149,9 @@ model Order{
   id String @id @default(cuid())
   userId Int
   providerId String
-  address String
+  addressDetail String?
+  addressId String
+  address Address @relation(fields:[addressId],references:[id]) 
   status OrderStatus @default(PENDING)
   
   user User @relation(fields: [userId], references: [id])

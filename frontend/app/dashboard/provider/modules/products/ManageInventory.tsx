@@ -22,6 +22,14 @@ import {
   Tag,
   AlertCircle,
 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import {
+  setProducts,
+  setCategories,
+  setLoading,
+  updateProductInState,
+  removeProductFromState,
+} from '@/redux/slices/provider.slice';
 import {
   getMyProducts,
   getCategories,
@@ -29,19 +37,23 @@ import {
   togglePublishProduct,
   deleteProduct,
   ProductItem,
-  CategoryItem,
 } from '@/apis/products.api';
 import { resolveImages } from '@/apis/apiClient';
 
 export default function ManageInventory() {
-  const [products, setProducts] = useState<ProductItem[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useAppDispatch();
+
+  // Read data from Redux store
+  const { products, categories, loading } = useAppSelector(
+    (state) => state.provider
+  );
+
+  // Simple local filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'approved' | 'pending'>('all');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   // Edit Modal State
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
@@ -67,39 +79,33 @@ export default function ManageInventory() {
   const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Alert/Toast State
+  // Notification State
   const [notification, setNotification] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
 
-  // Toggle Publish loading state per item
-  const [togglingId, setTogglingId] = useState<string | null>(null);
-
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 4000);
   };
 
-  const fetchInventory = async (isManualRefresh = false) => {
-    if (isManualRefresh) setRefreshing(true);
-    else setLoading(true);
-
+  // Basic fetch function: updates Redux store
+  const fetchInventory = async () => {
+    dispatch(setLoading(true));
     try {
       const [productsData, categoriesData] = await Promise.all([
         getMyProducts(),
         getCategories(),
       ]);
-      setProducts(Array.isArray(productsData) ? productsData : []);
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+      dispatch(setProducts(Array.isArray(productsData) ? productsData : []));
+      dispatch(setCategories(Array.isArray(categoriesData) ? categoriesData : []));
     } catch (err: any) {
-      console.error('Failed to load inventory:', err);
-      showNotification('error', err?.message || 'Could not load your inventory.');
+      showNotification('error', err?.message || 'Failed to load inventory');
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -107,10 +113,9 @@ export default function ManageInventory() {
     fetchInventory();
   }, []);
 
-  // Filtered products list
+  // Filter products directly from Redux state
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesName = product.name?.toLowerCase().includes(query);
@@ -118,12 +123,10 @@ export default function ManageInventory() {
         if (!matchesName && !matchesDesc) return false;
       }
 
-      // Category filter
       if (selectedCategory !== 'all') {
         if (product.categoryId !== selectedCategory) return false;
       }
 
-      // Status filter
       if (statusFilter === 'published' && !product.isPublished) return false;
       if (statusFilter === 'draft' && product.isPublished) return false;
       if (statusFilter === 'approved' && !product.isApproved) return false;
@@ -133,7 +136,7 @@ export default function ManageInventory() {
     });
   }, [products, searchQuery, selectedCategory, statusFilter]);
 
-  // Inventory stats
+  // Inventory stats calculated from Redux products
   const stats = useMemo(() => {
     const total = products.length;
     const published = products.filter((p) => p.isPublished).length;
@@ -143,30 +146,25 @@ export default function ManageInventory() {
     return { total, published, drafts, approved, pending };
   }, [products]);
 
-  // Handle Quick Toggle Publish
+  // Toggle publish and update Redux store
   const handleTogglePublish = async (product: ProductItem) => {
     const targetStatus = !product.isPublished;
     setTogglingId(product.id);
 
-    // Optimistic update
-    setProducts((prev) =>
-      prev.map((p) => (p.id === product.id ? { ...p, isPublished: targetStatus } : p))
-    );
-
     try {
-      await togglePublishProduct(product.id, targetStatus);
+      const res = await togglePublishProduct(product.id, targetStatus);
+      if (res?.product) {
+        dispatch(updateProductInState(res.product));
+      } else {
+        dispatch(updateProductInState({ ...product, isPublished: targetStatus }));
+      }
+
       showNotification(
         'success',
-        targetStatus
-          ? `"${product.name}" is now marked as Published.`
-          : `"${product.name}" was reverted to Draft.`
+        targetStatus ? `"${product.name}" published` : `"${product.name}" moved to draft`
       );
     } catch (err: any) {
-      // Revert optimistic update
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, isPublished: !targetStatus } : p))
-      );
-      showNotification('error', err?.message || 'Failed to update publication status.');
+      showNotification('error', err?.message || 'Failed to update publish status');
     } finally {
       setTogglingId(null);
     }
@@ -186,7 +184,7 @@ export default function ManageInventory() {
     setEditImagePreview(product.imageUrl ? resolveImages(product.imageUrl) : '');
   };
 
-  // Submit Edit Form
+  // Save edit and update Redux store
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
@@ -205,32 +203,29 @@ export default function ManageInventory() {
       }
 
       const updated = await updateProduct(editingProduct.id, formData);
+      dispatch(updateProductInState(updated));
 
-      setProducts((prev) =>
-        prev.map((p) => (p.id === editingProduct.id ? { ...p, ...updated } : p))
-      );
-
-      showNotification('success', `Product "${editFormData.name}" updated successfully.`);
+      showNotification('success', `Product "${editFormData.name}" updated`);
       setEditingProduct(null);
     } catch (err: any) {
-      showNotification('error', err?.message || 'Failed to update product.');
+      showNotification('error', err?.message || 'Failed to update product');
     } finally {
       setSavingEdit(false);
     }
   };
 
-  // Submit Delete
+  // Delete product and remove from Redux store
   const handleConfirmDelete = async () => {
     if (!deletingProduct) return;
     setDeleting(true);
 
     try {
       await deleteProduct(deletingProduct.id);
-      setProducts((prev) => prev.filter((p) => p.id !== deletingProduct.id));
-      showNotification('success', `Product "${deletingProduct.name}" removed from inventory.`);
+      dispatch(removeProductFromState(deletingProduct.id));
+      showNotification('success', `Product removed from inventory`);
       setDeletingProduct(null);
     } catch (err: any) {
-      showNotification('error', err?.message || 'Failed to delete product.');
+      showNotification('error', err?.message || 'Failed to delete product');
     } finally {
       setDeleting(false);
     }
@@ -238,7 +233,7 @@ export default function ManageInventory() {
 
   return (
     <div className="space-y-6">
-      {/* Toast Notification */}
+      {/* Toast Alert */}
       {notification && (
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-sm font-semibold transition-all ${
@@ -262,7 +257,7 @@ export default function ManageInventory() {
         </div>
       )}
 
-      {/* Header and Quick Stats */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-950 dark:text-white flex items-center gap-2">
@@ -270,18 +265,18 @@ export default function ManageInventory() {
             <span>Product Inventory</span>
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manage your store merchandise, publish statuses, pricing, and approval workflows.
+            Manage your store merchandise, publish statuses, and pricing.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => fetchInventory(true)}
-            disabled={refreshing}
+            onClick={fetchInventory}
+            disabled={loading}
             className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#161922] hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 transition-all cursor-pointer disabled:opacity-50"
             title="Refresh inventory"
           >
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
@@ -295,9 +290,9 @@ export default function ManageInventory() {
         </div>
       </div>
 
-      {/* Inventory Stat Cards */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
+        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs">
           <div className="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
             <span>Total Listed</span>
             <Package size={16} className="text-gray-400 dark:text-gray-500" />
@@ -306,7 +301,7 @@ export default function ManageInventory() {
           <span className="text-[11px] text-gray-400 dark:text-gray-500">All registered items</span>
         </div>
 
-        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
+        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs">
           <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
             <span>Published</span>
             <Eye size={16} className="text-emerald-500 dark:text-emerald-400" />
@@ -315,7 +310,7 @@ export default function ManageInventory() {
           <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-medium">Ready for buyers</span>
         </div>
 
-        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
+        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs">
           <div className="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
             <span>Drafts</span>
             <EyeOff size={16} className="text-gray-400 dark:text-gray-500" />
@@ -324,27 +319,27 @@ export default function ManageInventory() {
           <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium">Unpublished</span>
         </div>
 
-        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs transition-colors">
+        <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs">
           <div className="flex items-center justify-between text-blue-700 dark:text-blue-400 text-xs font-semibold">
             <span>Admin Approved</span>
             <CheckCircle2 size={16} className="text-blue-500 dark:text-blue-400" />
           </div>
           <p className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-2">{stats.approved}</p>
-          <span className="text-[11px] text-blue-600/80 dark:text-blue-400/80 font-medium">Verified by SHOP.CO</span>
+          <span className="text-[11px] text-blue-600/80 dark:text-blue-400/80 font-medium">Verified by admin</span>
         </div>
 
-        <div className="col-span-2 lg:col-span-1 bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-2xl border border-amber-200/70 dark:border-amber-800/40 shadow-2xs transition-colors">
+        <div className="col-span-2 lg:col-span-1 bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-2xl border border-amber-200/70 dark:border-amber-800/40 shadow-2xs">
           <div className="flex items-center justify-between text-amber-800 dark:text-amber-400 text-xs font-semibold">
             <span>Pending Review</span>
             <Clock size={16} className="text-amber-500 dark:text-amber-400" />
           </div>
           <p className="text-2xl font-black text-amber-700 dark:text-amber-400 mt-2">{stats.pending}</p>
-          <span className="text-[11px] text-amber-600 dark:text-amber-500 font-medium">Awaiting admin review</span>
+          <span className="text-[11px] text-amber-600 dark:text-amber-500 font-medium">Awaiting review</span>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs space-y-3 transition-colors">
+      <div className="bg-white dark:bg-[#161922] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -459,7 +454,7 @@ export default function ManageInventory() {
       {loading ? (
         <div className="bg-white dark:bg-[#161922] rounded-3xl border border-gray-200/80 dark:border-gray-800 p-16 text-center">
           <RefreshCw size={28} className="animate-spin mx-auto text-gray-400 mb-3" />
-          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Loading your inventory...</p>
+          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Loading products...</p>
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white dark:bg-[#161922] rounded-3xl border border-gray-200/80 dark:border-gray-800 p-12 text-center space-y-4 shadow-2xs">
@@ -470,7 +465,7 @@ export default function ManageInventory() {
             <h3 className="text-base font-bold text-gray-900 dark:text-white">No matching products found</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
               {searchQuery || selectedCategory !== 'all' || statusFilter !== 'all'
-                ? 'Try adjusting your search query or clear the active status filter.'
+                ? 'Try adjusting your search query or clear the active filter.'
                 : 'Start listing products into your provider inventory to begin selling.'}
             </p>
           </div>
@@ -497,7 +492,7 @@ export default function ManageInventory() {
         </div>
       ) : viewMode === 'table' ? (
         /* TABLE VIEW */
-        <div className="bg-white dark:bg-[#161922] rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-[#161922] rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
