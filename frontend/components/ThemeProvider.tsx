@@ -15,40 +15,27 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Read saved preference or system preference
-    const saved = localStorage.getItem('ecom_theme') as Theme | null;
-    const initialTheme: Theme =
-      saved === 'dark' || saved === 'light'
-        ? saved
-        : window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-
-    setThemeState(initialTheme);
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    setMounted(true);
-  }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('ecom_theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
+  useEffect(() => {
+    const saved = localStorage.getItem('ecom_theme') as Theme | null;
+
+    const newTheme =
+      saved || (window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light');
+
+    setTheme(newTheme);
+  }, []);
+
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
   return (
@@ -60,9 +47,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
+
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error('useTheme must be used inside ThemeProvider');
   }
+
   return context;
 }
 
@@ -71,7 +60,6 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
   return (
     <button
-      type="button"
       onClick={toggleTheme}
       className={`p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer ${className}`}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}

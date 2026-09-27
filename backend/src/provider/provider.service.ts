@@ -14,10 +14,15 @@ import {
   ShipmentStatus,
   UserRole,
 } from '../generated/prisma/enums';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { returnDecisionTemplate } from '../mail/templates';
 
 @Injectable()
 export class ProviderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rabbitMQService: RabbitMQService,
+  ) {}
 
   // ==========================================
   // 1. STAFF MANAGEMENT
@@ -459,6 +464,21 @@ export class ProviderService {
         items: { include: { product: true } },
       },
     });
+
+    // Notify customer about provider decision
+    if (updated.user?.email) {
+      const html = returnDecisionTemplate({
+        customerName: updated.user.name || 'Shopper',
+        orderId,
+        approved,
+        decisionNote,
+      });
+      this.rabbitMQService.sendEmail({
+        to: updated.user.email,
+        subject: `Update on your Order #${orderId.slice(-6).toUpperCase()} Request - SHOP.CO`,
+        html,
+      }).catch(() => {});
+    }
 
     return {
       message: approved ? 'Request approved successfully' : 'Request rejected by store provider',

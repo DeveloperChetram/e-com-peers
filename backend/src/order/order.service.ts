@@ -8,10 +8,21 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { PlaceOrderDto } from './dto/place-order.dto';
 import { OrderStatus } from '../generated/prisma/enums';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import {
+  orderPlacedTemplate,
+  orderCancelledTemplate,
+  returnOrCancelRequestedTemplate,
+  orderStatusUpdatedTemplate,
+  formatAddress,
+} from '../mail/templates';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rabbitMQService: RabbitMQService,
+  ) {}
 
   // ==========================================
   // CUSTOMER / USER ORDER METHODS
@@ -54,11 +65,11 @@ export class OrderService {
       address = await this.prisma.address.create({
         data: {
           userId,
-          street: dto.address?.street || '123 Main St',
-          city: dto.address?.city || 'New York',
-          state: dto.address?.state || 'NY',
-          zip: dto.address?.zip || '10001',
-          country: dto.address?.country || 'USA',
+          street: dto.address?.street || 'no street',
+          city: dto.address?.city || 'no city',
+          state: dto.address?.state || 'no statr',
+          zip: dto.address?.zip || 'no zip',
+          country: dto.address?.country || 'no country',
         },
       });
     }
@@ -82,20 +93,7 @@ export class OrderService {
       products[0]?.providerId;
 
     if (!providerId) {
-      const anyProvider = await this.prisma.provider.findFirst();
-      if (anyProvider) {
-        providerId = anyProvider.id;
-      } else {
-        // Fallback: create default platform provider if none exists
-        const defaultProvider = await this.prisma.provider.create({
-          data: {
-            userId,
-            businessName: 'E-Com Direct',
-            isVerified: true,
-          },
-        });
-        providerId = defaultProvider.id;
-      }
+    throw new BadRequestException('Provider not found');
     }
 
     // Create Order and OrderItems in database
@@ -157,6 +155,41 @@ export class OrderService {
         },
       });
     }
+ 
+    // Asynchronously notify customer via RabbitMQ email queue
+    this.prisma.user
+      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .then((customer) => {
+        if (customer?.email) {
+          const emailItems = (order.items || []).map((it) => ({
+            name: it.product?.name || 'Item',
+            quantity: it.quantity,
+            price: Number(it.product?.price) || 0,
+          }));
+
+          const totalAmount = emailItems.reduce(
+            (sum, it) => sum + it.price * it.quantity,
+            0
+          );
+          const formattedAddress = formatAddress(order.addressDetail, order.address);
+
+          const html = orderPlacedTemplate({
+            customerName: customer.name || 'Shopper',
+            orderId: order.id,
+            items: emailItems,
+            totalAmount,
+            formattedAddress,
+            merchantName: order.provider?.businessName,
+          });
+
+          this.rabbitMQService.sendEmail({
+            to: customer.email,
+            subject: `Order #${order.id.slice(-6).toUpperCase()} Placed Successfully - SHOP.CO`,
+            html,
+          });
+        }
+      })
+      .catch(() => {});
 
     return order;
   }
@@ -297,6 +330,25 @@ export class OrderService {
         address: true,
       },
     });
+ 
+    // Asynchronously notify customer via RabbitMQ email queue
+    this.prisma.user
+      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .then((customer) => {
+        if (customer?.email) {
+          const html = orderCancelledTemplate({
+            customerName: customer.name || 'Shopper',
+            orderId,
+            reason: 'Cancelled directly by customer before fulfillment',
+          });
+          this.rabbitMQService.sendEmail({
+            to: customer.email,
+            subject: `Order #${orderId.slice(-6).toUpperCase()} Cancelled - SHOP.CO`,
+            html,
+          });
+        }
+      })
+      .catch(() => {});
 
     return {
       message: 'Order cancelled successfully',
@@ -337,6 +389,26 @@ export class OrderService {
         provider: true,
       },
     });
+
+    // Notify customer that request was received
+    this.prisma.user
+      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .then((customer) => {
+        if (customer?.email) {
+          const html = returnOrCancelRequestedTemplate({
+            customerName: customer.name || 'Shopper',
+            orderId,
+            type,
+            reason: reason?.trim(),
+          });
+          this.rabbitMQService.sendEmail({
+            to: customer.email,
+            subject: `${type === 'CANCEL' ? 'Cancellation' : 'Return'} Request Received - Order #${orderId.slice(-6).toUpperCase()}`,
+            html,
+          });
+        }
+      })
+      .catch(() => {});
 
     return {
       message: `${type === 'CANCEL' ? 'Cancellation' : 'Return'} request submitted for store review`,
@@ -381,9 +453,6 @@ export class OrderService {
     };
   }
 
-  // ==========================================
-  // PROVIDER ORDER METHODS
-  // ==========================================
 
   // 1. Get all orders for a specific provider
   async getProviderOrders(providerId: string, query: any = {}) {
@@ -405,7 +474,7 @@ export class OrderService {
         where,
         skip,
         take: limit,
-        orderBy: { id: 'desc' },
+        orderBy: { createdAt: 'desc' },
         include: {
           user: {
             select: {
@@ -503,8 +572,26 @@ export class OrderService {
           },
         },
         address: true,
+        shipment: true,
       },
     });
+
+    // Notify customer about status change
+    if (updated.user?.email) {
+      const shipment = (updated as any).shipment?.[0];
+      const html = orderStatusUpdatedTemplate({
+        customerName: updated.user.name || 'Shopper',
+        orderId,
+        newStatus: status,
+        trackingNumber: shipment?.trackingNumber,
+        carrier: shipment?.carrier,
+      });
+      this.rabbitMQService.sendEmail({
+        to: updated.user.email,
+        subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
+        html,
+      }).catch(() => {});
+    }
 
     return {
       message: `Order status updated to ${status}`,
@@ -512,11 +599,9 @@ export class OrderService {
     };
   }
 
-  // ==========================================
-  // ADMIN ORDER METHODS
-  // ==========================================
-
+// admin routes
   // 1. Get all orders across platform
+  
   async getAdminOrders(query: any = {}) {
     const page = Math.max(1, Number(query?.page) || 1);
     const limit = Math.max(1, Number(query?.limit) || 20);
@@ -620,7 +705,7 @@ export class OrderService {
       throw new NotFoundException('Order not found');
     }
 
-    return this.prisma.order.update({
+    const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: { status },
       include: {
@@ -632,8 +717,28 @@ export class OrderService {
           },
         },
         address: true,
+        shipment: true,
       },
     });
+
+    // Notify customer about status change
+    if (updated.user?.email) {
+      const shipment = (updated as any).shipment?.[0];
+      const html = orderStatusUpdatedTemplate({
+        customerName: updated.user.name || 'Shopper',
+        orderId,
+        newStatus: status,
+        trackingNumber: shipment?.trackingNumber,
+        carrier: shipment?.carrier,
+      });
+      this.rabbitMQService.sendEmail({
+        to: updated.user.email,
+        subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
+        html,
+      }).catch(() => {});
+    }
+
+    return updated;
   }
 
   // 4. Admin deletes order

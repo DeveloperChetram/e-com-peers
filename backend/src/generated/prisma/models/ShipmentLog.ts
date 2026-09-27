@@ -42,6 +42,7 @@ export type ShipmentLogMinAggregateOutputType = {
   location: string | null
   note: string | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type ShipmentLogMaxAggregateOutputType = {
@@ -52,6 +53,7 @@ export type ShipmentLogMaxAggregateOutputType = {
   location: string | null
   note: string | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type ShipmentLogCountAggregateOutputType = {
@@ -62,6 +64,7 @@ export type ShipmentLogCountAggregateOutputType = {
   location: number
   note: number
   createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -82,6 +85,7 @@ export type ShipmentLogMinAggregateInputType = {
   location?: true
   note?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type ShipmentLogMaxAggregateInputType = {
@@ -92,6 +96,7 @@ export type ShipmentLogMaxAggregateInputType = {
   location?: true
   note?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type ShipmentLogCountAggregateInputType = {
@@ -102,6 +107,7 @@ export type ShipmentLogCountAggregateInputType = {
   location?: true
   note?: true
   createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -199,6 +205,7 @@ export type ShipmentLogGroupByOutputType = {
   location: string | null
   note: string | null
   createdAt: Date
+  updatedAt: Date
   _count: ShipmentLogCountAggregateOutputType | null
   _avg: ShipmentLogAvgAggregateOutputType | null
   _sum: ShipmentLogSumAggregateOutputType | null
@@ -232,6 +239,7 @@ export type ShipmentLogWhereInput = {
   location?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   note?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
   shipment?: Prisma.XOR<Prisma.ShipmentScalarRelationFilter, Prisma.ShipmentWhereInput>
   staff?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -244,6 +252,7 @@ export type ShipmentLogOrderByWithRelationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   shipment?: Prisma.ShipmentOrderByWithRelationInput
   staff?: Prisma.UserOrderByWithRelationInput
 }
@@ -259,6 +268,7 @@ export type ShipmentLogWhereUniqueInput = Prisma.AtLeast<{
   location?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   note?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
   shipment?: Prisma.XOR<Prisma.ShipmentScalarRelationFilter, Prisma.ShipmentWhereInput>
   staff?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -271,6 +281,7 @@ export type ShipmentLogOrderByWithAggregationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.ShipmentLogCountOrderByAggregateInput
   _avg?: Prisma.ShipmentLogAvgOrderByAggregateInput
   _max?: Prisma.ShipmentLogMaxOrderByAggregateInput
@@ -289,6 +300,7 @@ export type ShipmentLogScalarWhereWithAggregatesInput = {
   location?: Prisma.StringNullableWithAggregatesFilter<"ShipmentLog"> | string | null
   note?: Prisma.StringNullableWithAggregatesFilter<"ShipmentLog"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ShipmentLog"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ShipmentLog"> | Date | string
 }
 
 export type ShipmentLogCreateInput = {
@@ -297,6 +309,7 @@ export type ShipmentLogCreateInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   shipment: Prisma.ShipmentCreateNestedOneWithoutLogsInput
   staff?: Prisma.UserCreateNestedOneWithoutShipmentLogsInput
 }
@@ -309,6 +322,7 @@ export type ShipmentLogUncheckedCreateInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogUpdateInput = {
@@ -317,6 +331,7 @@ export type ShipmentLogUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shipment?: Prisma.ShipmentUpdateOneRequiredWithoutLogsNestedInput
   staff?: Prisma.UserUpdateOneWithoutShipmentLogsNestedInput
 }
@@ -329,6 +344,7 @@ export type ShipmentLogUncheckedUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogCreateManyInput = {
@@ -339,6 +355,7 @@ export type ShipmentLogCreateManyInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogUpdateManyMutationInput = {
@@ -347,6 +364,7 @@ export type ShipmentLogUpdateManyMutationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogUncheckedUpdateManyInput = {
@@ -357,6 +375,7 @@ export type ShipmentLogUncheckedUpdateManyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogListRelationFilter = {
@@ -377,6 +396,7 @@ export type ShipmentLogCountOrderByAggregateInput = {
   location?: Prisma.SortOrder
   note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ShipmentLogAvgOrderByAggregateInput = {
@@ -391,6 +411,7 @@ export type ShipmentLogMaxOrderByAggregateInput = {
   location?: Prisma.SortOrder
   note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ShipmentLogMinOrderByAggregateInput = {
@@ -401,6 +422,7 @@ export type ShipmentLogMinOrderByAggregateInput = {
   location?: Prisma.SortOrder
   note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ShipmentLogSumOrderByAggregateInput = {
@@ -497,6 +519,7 @@ export type ShipmentLogCreateWithoutStaffInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   shipment: Prisma.ShipmentCreateNestedOneWithoutLogsInput
 }
 
@@ -507,6 +530,7 @@ export type ShipmentLogUncheckedCreateWithoutStaffInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogCreateOrConnectWithoutStaffInput = {
@@ -546,6 +570,7 @@ export type ShipmentLogScalarWhereInput = {
   location?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   note?: Prisma.StringNullableFilter<"ShipmentLog"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"ShipmentLog"> | Date | string
 }
 
 export type ShipmentLogCreateWithoutShipmentInput = {
@@ -554,6 +579,7 @@ export type ShipmentLogCreateWithoutShipmentInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   staff?: Prisma.UserCreateNestedOneWithoutShipmentLogsInput
 }
 
@@ -564,6 +590,7 @@ export type ShipmentLogUncheckedCreateWithoutShipmentInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogCreateOrConnectWithoutShipmentInput = {
@@ -599,6 +626,7 @@ export type ShipmentLogCreateManyStaffInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogUpdateWithoutStaffInput = {
@@ -607,6 +635,7 @@ export type ShipmentLogUpdateWithoutStaffInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shipment?: Prisma.ShipmentUpdateOneRequiredWithoutLogsNestedInput
 }
 
@@ -617,6 +646,7 @@ export type ShipmentLogUncheckedUpdateWithoutStaffInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogUncheckedUpdateManyWithoutStaffInput = {
@@ -626,6 +656,7 @@ export type ShipmentLogUncheckedUpdateManyWithoutStaffInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogCreateManyShipmentInput = {
@@ -635,6 +666,7 @@ export type ShipmentLogCreateManyShipmentInput = {
   location?: string | null
   note?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ShipmentLogUpdateWithoutShipmentInput = {
@@ -643,6 +675,7 @@ export type ShipmentLogUpdateWithoutShipmentInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUpdateOneWithoutShipmentLogsNestedInput
 }
 
@@ -653,6 +686,7 @@ export type ShipmentLogUncheckedUpdateWithoutShipmentInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ShipmentLogUncheckedUpdateManyWithoutShipmentInput = {
@@ -662,6 +696,7 @@ export type ShipmentLogUncheckedUpdateManyWithoutShipmentInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -674,6 +709,7 @@ export type ShipmentLogSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   location?: boolean
   note?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   shipment?: boolean | Prisma.ShipmentDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.ShipmentLog$staffArgs<ExtArgs>
 }, ExtArgs["result"]["shipmentLog"]>
@@ -686,6 +722,7 @@ export type ShipmentLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   location?: boolean
   note?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   shipment?: boolean | Prisma.ShipmentDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.ShipmentLog$staffArgs<ExtArgs>
 }, ExtArgs["result"]["shipmentLog"]>
@@ -698,6 +735,7 @@ export type ShipmentLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   location?: boolean
   note?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   shipment?: boolean | Prisma.ShipmentDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.ShipmentLog$staffArgs<ExtArgs>
 }, ExtArgs["result"]["shipmentLog"]>
@@ -710,9 +748,10 @@ export type ShipmentLogSelectScalar = {
   location?: boolean
   note?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type ShipmentLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "shipmentId" | "staffId" | "status" | "location" | "note" | "createdAt", ExtArgs["result"]["shipmentLog"]>
+export type ShipmentLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "shipmentId" | "staffId" | "status" | "location" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["shipmentLog"]>
 export type ShipmentLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   shipment?: boolean | Prisma.ShipmentDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.ShipmentLog$staffArgs<ExtArgs>
@@ -740,6 +779,7 @@ export type $ShipmentLogPayload<ExtArgs extends runtime.Types.Extensions.Interna
     location: string | null
     note: string | null
     createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["shipmentLog"]>
   composites: {}
 }
@@ -1172,6 +1212,7 @@ export interface ShipmentLogFieldRefs {
   readonly location: Prisma.FieldRef<"ShipmentLog", 'String'>
   readonly note: Prisma.FieldRef<"ShipmentLog", 'String'>
   readonly createdAt: Prisma.FieldRef<"ShipmentLog", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"ShipmentLog", 'DateTime'>
 }
     
 

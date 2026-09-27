@@ -38,18 +38,24 @@ export type FaviorateMinAggregateOutputType = {
   id: string | null
   userId: number | null
   productId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type FaviorateMaxAggregateOutputType = {
   id: string | null
   userId: number | null
   productId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type FaviorateCountAggregateOutputType = {
   id: number
   userId: number
   productId: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -66,18 +72,24 @@ export type FaviorateMinAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type FaviorateMaxAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type FaviorateCountAggregateInputType = {
   id?: true
   userId?: true
   productId?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -171,6 +183,8 @@ export type FaviorateGroupByOutputType = {
   id: string
   userId: number
   productId: string
+  createdAt: Date
+  updatedAt: Date
   _count: FaviorateCountAggregateOutputType | null
   _avg: FaviorateAvgAggregateOutputType | null
   _sum: FaviorateSumAggregateOutputType | null
@@ -200,6 +214,8 @@ export type FaviorateWhereInput = {
   id?: Prisma.StringFilter<"Faviorate"> | string
   userId?: Prisma.IntFilter<"Faviorate"> | number
   productId?: Prisma.StringFilter<"Faviorate"> | string
+  createdAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
 }
@@ -208,6 +224,8 @@ export type FaviorateOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   product?: Prisma.ProductOrderByWithRelationInput
 }
@@ -219,6 +237,8 @@ export type FaviorateWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.FaviorateWhereInput | Prisma.FaviorateWhereInput[]
   userId?: Prisma.IntFilter<"Faviorate"> | number
   productId?: Prisma.StringFilter<"Faviorate"> | string
+  createdAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
 }, "id">
@@ -227,6 +247,8 @@ export type FaviorateOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.FaviorateCountOrderByAggregateInput
   _avg?: Prisma.FaviorateAvgOrderByAggregateInput
   _max?: Prisma.FaviorateMaxOrderByAggregateInput
@@ -241,10 +263,14 @@ export type FaviorateScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Faviorate"> | string
   userId?: Prisma.IntWithAggregatesFilter<"Faviorate"> | number
   productId?: Prisma.StringWithAggregatesFilter<"Faviorate"> | string
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Faviorate"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Faviorate"> | Date | string
 }
 
 export type FaviorateCreateInput = {
   id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFaviorateInput
   product: Prisma.ProductCreateNestedOneWithoutFaviorateInput
 }
@@ -253,10 +279,14 @@ export type FaviorateUncheckedCreateInput = {
   id?: string
   userId: number
   productId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFaviorateNestedInput
   product?: Prisma.ProductUpdateOneRequiredWithoutFaviorateNestedInput
 }
@@ -265,22 +295,30 @@ export type FaviorateUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateCreateManyInput = {
   id?: string
   userId: number
   productId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateListRelationFilter = {
@@ -297,6 +335,8 @@ export type FaviorateCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type FaviorateAvgOrderByAggregateInput = {
@@ -307,12 +347,16 @@ export type FaviorateMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type FaviorateMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   productId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type FaviorateSumOrderByAggregateInput = {
@@ -405,12 +449,16 @@ export type FaviorateUncheckedUpdateManyWithoutProductNestedInput = {
 
 export type FaviorateCreateWithoutUserInput = {
   id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutFaviorateInput
 }
 
 export type FaviorateUncheckedCreateWithoutUserInput = {
   id?: string
   productId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateCreateOrConnectWithoutUserInput = {
@@ -446,16 +494,22 @@ export type FaviorateScalarWhereInput = {
   id?: Prisma.StringFilter<"Faviorate"> | string
   userId?: Prisma.IntFilter<"Faviorate"> | number
   productId?: Prisma.StringFilter<"Faviorate"> | string
+  createdAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Faviorate"> | Date | string
 }
 
 export type FaviorateCreateWithoutProductInput = {
   id?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFaviorateInput
 }
 
 export type FaviorateUncheckedCreateWithoutProductInput = {
   id?: string
   userId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateCreateOrConnectWithoutProductInput = {
@@ -487,41 +541,57 @@ export type FaviorateUpdateManyWithWhereWithoutProductInput = {
 export type FaviorateCreateManyUserInput = {
   id?: string
   productId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutFaviorateNestedInput
 }
 
 export type FaviorateUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateCreateManyProductInput = {
   id?: string
   userId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type FaviorateUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFaviorateNestedInput
 }
 
 export type FaviorateUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FaviorateUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -530,6 +600,8 @@ export type FaviorateSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   userId?: boolean
   productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["faviorate"]>
@@ -538,6 +610,8 @@ export type FaviorateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   userId?: boolean
   productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["faviorate"]>
@@ -546,6 +620,8 @@ export type FaviorateSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   userId?: boolean
   productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["faviorate"]>
@@ -554,9 +630,11 @@ export type FaviorateSelectScalar = {
   id?: boolean
   userId?: boolean
   productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type FaviorateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId", ExtArgs["result"]["faviorate"]>
+export type FaviorateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "createdAt" | "updatedAt", ExtArgs["result"]["faviorate"]>
 export type FaviorateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -580,6 +658,8 @@ export type $FavioratePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: string
     userId: number
     productId: string
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["faviorate"]>
   composites: {}
 }
@@ -1008,6 +1088,8 @@ export interface FaviorateFieldRefs {
   readonly id: Prisma.FieldRef<"Faviorate", 'String'>
   readonly userId: Prisma.FieldRef<"Faviorate", 'Int'>
   readonly productId: Prisma.FieldRef<"Faviorate", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Faviorate", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Faviorate", 'DateTime'>
 }
     
 

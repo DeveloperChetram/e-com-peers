@@ -42,6 +42,8 @@ export type AddressMinAggregateOutputType = {
   state: string | null
   zip: string | null
   country: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AddressMaxAggregateOutputType = {
@@ -52,6 +54,8 @@ export type AddressMaxAggregateOutputType = {
   state: string | null
   zip: string | null
   country: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AddressCountAggregateOutputType = {
@@ -62,6 +66,8 @@ export type AddressCountAggregateOutputType = {
   state: number
   zip: number
   country: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -82,6 +88,8 @@ export type AddressMinAggregateInputType = {
   state?: true
   zip?: true
   country?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AddressMaxAggregateInputType = {
@@ -92,6 +100,8 @@ export type AddressMaxAggregateInputType = {
   state?: true
   zip?: true
   country?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AddressCountAggregateInputType = {
@@ -102,6 +112,8 @@ export type AddressCountAggregateInputType = {
   state?: true
   zip?: true
   country?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -199,6 +211,8 @@ export type AddressGroupByOutputType = {
   state: string
   zip: string
   country: string
+  createdAt: Date
+  updatedAt: Date
   _count: AddressCountAggregateOutputType | null
   _avg: AddressAvgAggregateOutputType | null
   _sum: AddressSumAggregateOutputType | null
@@ -232,6 +246,8 @@ export type AddressWhereInput = {
   state?: Prisma.StringFilter<"Address"> | string
   zip?: Prisma.StringFilter<"Address"> | string
   country?: Prisma.StringFilter<"Address"> | string
+  createdAt?: Prisma.DateTimeFilter<"Address"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Address"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.OrderListRelationFilter
 }
@@ -244,6 +260,8 @@ export type AddressOrderByWithRelationInput = {
   state?: Prisma.SortOrder
   zip?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   order?: Prisma.OrderOrderByRelationAggregateInput
 }
@@ -259,6 +277,8 @@ export type AddressWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.StringFilter<"Address"> | string
   zip?: Prisma.StringFilter<"Address"> | string
   country?: Prisma.StringFilter<"Address"> | string
+  createdAt?: Prisma.DateTimeFilter<"Address"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Address"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   order?: Prisma.OrderListRelationFilter
 }, "id">
@@ -271,6 +291,8 @@ export type AddressOrderByWithAggregationInput = {
   state?: Prisma.SortOrder
   zip?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.AddressCountOrderByAggregateInput
   _avg?: Prisma.AddressAvgOrderByAggregateInput
   _max?: Prisma.AddressMaxOrderByAggregateInput
@@ -289,6 +311,8 @@ export type AddressScalarWhereWithAggregatesInput = {
   state?: Prisma.StringWithAggregatesFilter<"Address"> | string
   zip?: Prisma.StringWithAggregatesFilter<"Address"> | string
   country?: Prisma.StringWithAggregatesFilter<"Address"> | string
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Address"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Address"> | Date | string
 }
 
 export type AddressCreateInput = {
@@ -298,6 +322,8 @@ export type AddressCreateInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAddressInput
   order?: Prisma.OrderCreateNestedManyWithoutAddressInput
 }
@@ -310,6 +336,8 @@ export type AddressUncheckedCreateInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   order?: Prisma.OrderUncheckedCreateNestedManyWithoutAddressInput
 }
 
@@ -320,6 +348,8 @@ export type AddressUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAddressNestedInput
   order?: Prisma.OrderUpdateManyWithoutAddressNestedInput
 }
@@ -332,6 +362,8 @@ export type AddressUncheckedUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.OrderUncheckedUpdateManyWithoutAddressNestedInput
 }
 
@@ -343,6 +375,8 @@ export type AddressCreateManyInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AddressUpdateManyMutationInput = {
@@ -352,6 +386,8 @@ export type AddressUpdateManyMutationInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AddressUncheckedUpdateManyInput = {
@@ -362,6 +398,8 @@ export type AddressUncheckedUpdateManyInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AddressListRelationFilter = {
@@ -382,6 +420,8 @@ export type AddressCountOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zip?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AddressAvgOrderByAggregateInput = {
@@ -396,6 +436,8 @@ export type AddressMaxOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zip?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AddressMinOrderByAggregateInput = {
@@ -406,6 +448,8 @@ export type AddressMinOrderByAggregateInput = {
   state?: Prisma.SortOrder
   zip?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AddressSumOrderByAggregateInput = {
@@ -480,6 +524,8 @@ export type AddressCreateWithoutUserInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   order?: Prisma.OrderCreateNestedManyWithoutAddressInput
 }
 
@@ -490,6 +536,8 @@ export type AddressUncheckedCreateWithoutUserInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   order?: Prisma.OrderUncheckedCreateNestedManyWithoutAddressInput
 }
 
@@ -530,6 +578,8 @@ export type AddressScalarWhereInput = {
   state?: Prisma.StringFilter<"Address"> | string
   zip?: Prisma.StringFilter<"Address"> | string
   country?: Prisma.StringFilter<"Address"> | string
+  createdAt?: Prisma.DateTimeFilter<"Address"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Address"> | Date | string
 }
 
 export type AddressCreateWithoutOrderInput = {
@@ -539,6 +589,8 @@ export type AddressCreateWithoutOrderInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAddressInput
 }
 
@@ -550,6 +602,8 @@ export type AddressUncheckedCreateWithoutOrderInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AddressCreateOrConnectWithoutOrderInput = {
@@ -575,6 +629,8 @@ export type AddressUpdateWithoutOrderInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAddressNestedInput
 }
 
@@ -586,6 +642,8 @@ export type AddressUncheckedUpdateWithoutOrderInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AddressCreateManyUserInput = {
@@ -595,6 +653,8 @@ export type AddressCreateManyUserInput = {
   state: string
   zip: string
   country: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AddressUpdateWithoutUserInput = {
@@ -604,6 +664,8 @@ export type AddressUpdateWithoutUserInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.OrderUpdateManyWithoutAddressNestedInput
 }
 
@@ -614,6 +676,8 @@ export type AddressUncheckedUpdateWithoutUserInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   order?: Prisma.OrderUncheckedUpdateManyWithoutAddressNestedInput
 }
 
@@ -624,6 +688,8 @@ export type AddressUncheckedUpdateManyWithoutUserInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   zip?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -665,6 +731,8 @@ export type AddressSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   state?: boolean
   zip?: boolean
   country?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Address$orderArgs<ExtArgs>
   _count?: boolean | Prisma.AddressCountOutputTypeDefaultArgs<ExtArgs>
@@ -678,6 +746,8 @@ export type AddressSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   state?: boolean
   zip?: boolean
   country?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["address"]>
 
@@ -689,6 +759,8 @@ export type AddressSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   state?: boolean
   zip?: boolean
   country?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["address"]>
 
@@ -700,9 +772,11 @@ export type AddressSelectScalar = {
   state?: boolean
   zip?: boolean
   country?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type AddressOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "street" | "city" | "state" | "zip" | "country", ExtArgs["result"]["address"]>
+export type AddressOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "street" | "city" | "state" | "zip" | "country" | "createdAt" | "updatedAt", ExtArgs["result"]["address"]>
 export type AddressInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   order?: boolean | Prisma.Address$orderArgs<ExtArgs>
@@ -729,6 +803,8 @@ export type $AddressPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     state: string
     zip: string
     country: string
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["address"]>
   composites: {}
 }
@@ -1161,6 +1237,8 @@ export interface AddressFieldRefs {
   readonly state: Prisma.FieldRef<"Address", 'String'>
   readonly zip: Prisma.FieldRef<"Address", 'String'>
   readonly country: Prisma.FieldRef<"Address", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Address", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Address", 'DateTime'>
 }
     
 

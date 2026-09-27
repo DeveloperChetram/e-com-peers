@@ -45,6 +45,8 @@ export type ProductMinAggregateOutputType = {
   categoryId: string | null
   isApproved: boolean | null
   providerId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type ProductMaxAggregateOutputType = {
@@ -58,6 +60,8 @@ export type ProductMaxAggregateOutputType = {
   categoryId: string | null
   isApproved: boolean | null
   providerId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type ProductCountAggregateOutputType = {
@@ -71,6 +75,8 @@ export type ProductCountAggregateOutputType = {
   categoryId: number
   isApproved: number
   providerId: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -94,6 +100,8 @@ export type ProductMinAggregateInputType = {
   categoryId?: true
   isApproved?: true
   providerId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type ProductMaxAggregateInputType = {
@@ -107,6 +115,8 @@ export type ProductMaxAggregateInputType = {
   categoryId?: true
   isApproved?: true
   providerId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type ProductCountAggregateInputType = {
@@ -120,6 +130,8 @@ export type ProductCountAggregateInputType = {
   categoryId?: true
   isApproved?: true
   providerId?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -220,6 +232,8 @@ export type ProductGroupByOutputType = {
   categoryId: string
   isApproved: boolean
   providerId: string | null
+  createdAt: Date
+  updatedAt: Date
   _count: ProductCountAggregateOutputType | null
   _avg: ProductAvgAggregateOutputType | null
   _sum: ProductSumAggregateOutputType | null
@@ -256,6 +270,8 @@ export type ProductWhereInput = {
   categoryId?: Prisma.StringFilter<"Product"> | string
   isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   provider?: Prisma.XOR<Prisma.ProviderNullableScalarRelationFilter, Prisma.ProviderWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   cartItem?: Prisma.CartItemListRelationFilter
@@ -274,6 +290,8 @@ export type ProductOrderByWithRelationInput = {
   categoryId?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   provider?: Prisma.ProviderOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
   cartItem?: Prisma.CartItemOrderByRelationAggregateInput
@@ -295,6 +313,8 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   categoryId?: Prisma.StringFilter<"Product"> | string
   isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   provider?: Prisma.XOR<Prisma.ProviderNullableScalarRelationFilter, Prisma.ProviderWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>
   cartItem?: Prisma.CartItemListRelationFilter
@@ -313,6 +333,8 @@ export type ProductOrderByWithAggregationInput = {
   categoryId?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProductCountOrderByAggregateInput
   _avg?: Prisma.ProductAvgOrderByAggregateInput
   _max?: Prisma.ProductMaxOrderByAggregateInput
@@ -334,6 +356,8 @@ export type ProductScalarWhereWithAggregatesInput = {
   categoryId?: Prisma.StringWithAggregatesFilter<"Product"> | string
   isApproved?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
 }
 
 export type ProductCreateInput = {
@@ -345,6 +369,8 @@ export type ProductCreateInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -363,6 +389,8 @@ export type ProductUncheckedCreateInput = {
   categoryId: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -377,6 +405,8 @@ export type ProductUpdateInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -395,6 +425,8 @@ export type ProductUncheckedUpdateInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -411,6 +443,8 @@ export type ProductCreateManyInput = {
   categoryId: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ProductUpdateManyMutationInput = {
@@ -422,6 +456,8 @@ export type ProductUpdateManyMutationInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ProductUncheckedUpdateManyInput = {
@@ -435,6 +471,8 @@ export type ProductUncheckedUpdateManyInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ProductListRelationFilter = {
@@ -458,6 +496,8 @@ export type ProductCountOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ProductAvgOrderByAggregateInput = {
@@ -475,6 +515,8 @@ export type ProductMaxOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ProductMinOrderByAggregateInput = {
@@ -488,6 +530,8 @@ export type ProductMinOrderByAggregateInput = {
   categoryId?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type ProductSumOrderByAggregateInput = {
@@ -642,6 +686,8 @@ export type ProductCreateWithoutProviderInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -658,6 +704,8 @@ export type ProductUncheckedCreateWithoutProviderInput = {
   imageUrl: string
   categoryId: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -703,6 +751,8 @@ export type ProductScalarWhereInput = {
   categoryId?: Prisma.StringFilter<"Product"> | string
   isApproved?: Prisma.BoolFilter<"Product"> | boolean
   providerId?: Prisma.StringNullableFilter<"Product"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
 }
 
 export type ProductCreateWithoutCategoryInput = {
@@ -714,6 +764,8 @@ export type ProductCreateWithoutCategoryInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -730,6 +782,8 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   imageUrl: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -770,6 +824,8 @@ export type ProductCreateWithoutCartItemInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   faviorate?: Prisma.FaviorateCreateNestedManyWithoutProductInput
@@ -787,6 +843,8 @@ export type ProductUncheckedCreateWithoutCartItemInput = {
   categoryId: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
 }
@@ -816,6 +874,8 @@ export type ProductUpdateWithoutCartItemInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -833,6 +893,8 @@ export type ProductUncheckedUpdateWithoutCartItemInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
 }
@@ -846,6 +908,8 @@ export type ProductCreateWithoutFaviorateInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -863,6 +927,8 @@ export type ProductUncheckedCreateWithoutFaviorateInput = {
   categoryId: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   orderItem?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
 }
@@ -892,6 +958,8 @@ export type ProductUpdateWithoutFaviorateInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -909,6 +977,8 @@ export type ProductUncheckedUpdateWithoutFaviorateInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
 }
@@ -922,6 +992,8 @@ export type ProductCreateWithoutOrderItemInput = {
   slug?: string | null
   imageUrl: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   provider?: Prisma.ProviderCreateNestedOneWithoutProductsInput
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
   cartItem?: Prisma.CartItemCreateNestedManyWithoutProductInput
@@ -939,6 +1011,8 @@ export type ProductUncheckedCreateWithoutOrderItemInput = {
   categoryId: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   cartItem?: Prisma.CartItemUncheckedCreateNestedManyWithoutProductInput
   faviorate?: Prisma.FaviorateUncheckedCreateNestedManyWithoutProductInput
 }
@@ -968,6 +1042,8 @@ export type ProductUpdateWithoutOrderItemInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
@@ -985,6 +1061,8 @@ export type ProductUncheckedUpdateWithoutOrderItemInput = {
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
 }
@@ -999,6 +1077,8 @@ export type ProductCreateManyProviderInput = {
   imageUrl: string
   categoryId: string
   isApproved?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ProductUpdateWithoutProviderInput = {
@@ -1010,6 +1090,8 @@ export type ProductUpdateWithoutProviderInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -1026,6 +1108,8 @@ export type ProductUncheckedUpdateWithoutProviderInput = {
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1041,6 +1125,8 @@ export type ProductUncheckedUpdateManyWithoutProviderInput = {
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ProductCreateManyCategoryInput = {
@@ -1053,6 +1139,8 @@ export type ProductCreateManyCategoryInput = {
   imageUrl: string
   isApproved?: boolean
   providerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type ProductUpdateWithoutCategoryInput = {
@@ -1064,6 +1152,8 @@ export type ProductUpdateWithoutCategoryInput = {
   slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   provider?: Prisma.ProviderUpdateOneWithoutProductsNestedInput
   cartItem?: Prisma.CartItemUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUpdateManyWithoutProductNestedInput
@@ -1080,6 +1170,8 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cartItem?: Prisma.CartItemUncheckedUpdateManyWithoutProductNestedInput
   faviorate?: Prisma.FaviorateUncheckedUpdateManyWithoutProductNestedInput
   orderItem?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1095,6 +1187,8 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1157,6 +1251,8 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   categoryId?: boolean
   isApproved?: boolean
   providerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   cartItem?: boolean | Prisma.Product$cartItemArgs<ExtArgs>
@@ -1176,6 +1272,8 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   categoryId?: boolean
   isApproved?: boolean
   providerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
@@ -1191,6 +1289,8 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   categoryId?: boolean
   isApproved?: boolean
   providerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
@@ -1206,9 +1306,11 @@ export type ProductSelectScalar = {
   categoryId?: boolean
   isApproved?: boolean
   providerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "isPublished" | "slug" | "imageUrl" | "categoryId" | "isApproved" | "providerId", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "isPublished" | "slug" | "imageUrl" | "categoryId" | "isApproved" | "providerId" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   provider?: boolean | Prisma.Product$providerArgs<ExtArgs>
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
@@ -1246,6 +1348,8 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     categoryId: string
     isApproved: boolean
     providerId: string | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["product"]>
   composites: {}
 }
@@ -1684,6 +1788,8 @@ export interface ProductFieldRefs {
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
   readonly isApproved: Prisma.FieldRef<"Product", 'Boolean'>
   readonly providerId: Prisma.FieldRef<"Product", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>
 }
     
 

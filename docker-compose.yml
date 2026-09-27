@@ -32,13 +32,17 @@ services:
     depends_on:
       - backend
 
-  mongodb:
-    image: mongo:8
-    container_name: ecom-mongodb
+ 
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ecom-rabbitmq
     ports:
-      - "27017:27017"
+      - "5672:5672"
+      - "15672:15672"
     volumes:
-      - mongo_data:/data/db
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
-  mongo_data:
+
+  rabbitmq_data:

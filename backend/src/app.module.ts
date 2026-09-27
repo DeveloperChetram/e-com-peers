@@ -14,6 +14,8 @@ import { AdminModule } from './admin/admin.module';
 import { AdminController } from './admin/admin.controller';
 import { OrderModule } from './order/order.module';
 import { ProviderModule } from './provider/provider.module';
+import { MailModule } from './mail/mail.module';
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -31,6 +33,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     AdminModule,
     OrderModule,
     ProviderModule,
+    MailModule,
+    RabbitMQModule,
   ],
   controllers: [AppController],
   providers: [AppService],

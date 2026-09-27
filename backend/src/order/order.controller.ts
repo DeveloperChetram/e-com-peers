@@ -18,12 +18,6 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  // ==========================================
-  // PROVIDER ORDER ROUTES
-  // (Defined before :id to prevent route shadowing)
-  // ==========================================
-
-  // GET /orders/provider/all or /orders/provider - List all orders for the authenticated provider
   @Get('provider/all')
   async getProviderOrdersAll(@Req() req: any, @Query() query: any) {
     const providerId = req.user?.provider?.id;
@@ -36,15 +30,14 @@ export class OrderController {
     return this.orderService.getProviderOrders(providerId, query);
   }
 
-  // GET /orders/provider/:id - Get specific order details for provider
+ 
   @Get('provider/:id')
   async getProviderOrder(@Req() req: any, @Param('id') id: string) {
     const providerId = req.user?.provider?.id;
     return this.orderService.getProviderOrder(providerId, id);
   }
 
-  // PATCH /orders/provider/:id/status - Update order status (CONFIRMED, SHIPPED, DELIVERED, CANCELLED)
-  // Only Provider owner can accept/reject/modify order status directly
+  
   @Patch('provider/:id/status')
   async updateProviderOrderStatus(
     @Req() req: any,
@@ -60,12 +53,6 @@ export class OrderController {
     return this.orderService.updateProviderOrderStatus(providerId, id, dto.status);
   }
 
-  // ==========================================
-  // ADMIN ORDER ROUTES
-  // (Defined before :id to prevent route shadowing)
-  // ==========================================
-
-  // GET /orders/admin/all or /orders/admin - List all orders across platform with filters
   @Get('admin/all')
   async getAdminOrdersAll(@Query() query: any) {
     return this.orderService.getAdminOrders(query);

@@ -71,13 +71,13 @@ export default function ProviderHeader({ onToggleSidebar }: ProviderHeaderProps)
         <ThemeToggle />
 
         {/* Notifications */}
-        <button
+        {/* <button
           className="relative p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
           aria-label="View notifications"
         >
           <Bell size={18} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#161922]" />
-        </button>
+        </button> */}
 
         {/* Profile Avatar */}
         <div className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-800">

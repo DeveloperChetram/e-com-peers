@@ -48,7 +48,7 @@ model User {
   role      UserRole @default(USER)
   addressId String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   address  Address[]
   provider        Provider?
@@ -71,6 +71,8 @@ model Address {
   country String
   user User @relation(fields: [userId], references: [id])
   order Order[]
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 
@@ -82,7 +84,7 @@ model Provider {
   status       String   @default("PENDING")
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [userId], references: [id])
   products Product[]
@@ -98,6 +100,8 @@ model ProviderMember {
   role      String   @default("PROVIDER_STAFF")
   user      User     @relation(fields: [userId], references: [id])
   provider  Provider @relation(fields: [providerId], references: [id])
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 
@@ -106,6 +110,8 @@ model Category{
   name String 
   slug String
   products Product[]
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Product{
@@ -124,6 +130,8 @@ model Product{
   cartItem CartItem[]
   faviorate Faviorate[]
   orderItem OrderItem[]
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   
 }
 
@@ -133,6 +141,8 @@ model Cart{
   userId Int
   user User @relation(fields: [userId], references: [id]) 
   items CartItem[]
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 
@@ -143,6 +153,8 @@ model CartItem{
   productId String
   product Product @relation(fields: [productId], references: [id])
   quantity Int
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 
@@ -152,6 +164,8 @@ model Faviorate{
   productId String
   user User @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Order{
@@ -168,6 +182,10 @@ model Order{
   provider Provider @relation(fields: [providerId], references: [id])
   items   OrderItem[]
   shipment Shipment[]
+  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model OrderItem{
@@ -178,6 +196,8 @@ model OrderItem{
   quantity Int
   order Order @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Shipment {
@@ -195,7 +215,7 @@ model Shipment {
   endDate DateTime? 
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   order Order @relation(fields: [orderId], references: [id])
   provider Provider @relation(fields: [providerId], references: [id])
@@ -210,6 +230,7 @@ model ShipmentLog {
   location String?
   note String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   staff User? @relation("StaffShipmentLogs", fields: [staffId], references: [id])
