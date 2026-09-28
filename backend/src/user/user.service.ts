@@ -1,16 +1,31 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { RegisterProviderDto } from './dto/register-provider.dto';
+import { OAuth2Client } from 'google-auth-library';
+
+
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as any;
+
+
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterUserDto) {
     // 1. Check if user already exists
@@ -19,7 +34,9 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User already exists with this email address');
+      throw new ConflictException(
+        'User already exists with this email address',
+      );
     }
 
     // 2. Hash password
@@ -43,7 +60,9 @@ export class UserService {
       role: newUser.role,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
 
     // 5. Omit password from response
     const { password, ...userWithoutPassword } = newUser;
@@ -55,42 +74,697 @@ export class UserService {
     };
   }
 
-  async login (dto: LoginUserDto){
+  async registerProvider(dto: RegisterProviderDto) {
+    const existingUser: any = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase().trim() },
+    });
+    const existingProvider = await this.prisma.provider.findUnique({
+      where: { userId: existingUser?.id ? existingUser.id : 0 },
+    });
+
+    if (existingUser && existingProvider) {
+      throw new ConflictException(
+        'Provider already exists with this email please login',
+      );
+    }
+
+    if (existingUser) {
+      throw new ConflictException(
+        'User already exists with this email please login and convert to provider',
+      );
+    }
+
+    if (existingProvider) {
+      throw new ConflictException(
+        'Provider already exists please login through provider login page',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    const newUser = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        password: hashedPassword,
+        name: dto.name,
+        role: 'PROVIDER',
+      },
+    });
+
+    console.log(newUser);
+
+    const newProvider = await this.prisma.provider.create({
+      data: {
+        userId: newUser.id,
+        businessName: dto.businessName,
+        description: dto.description,
+        status: 'PENDING',
+      },
+    });
+
+    const { password, ...userWithoutPassword } = newUser;
+
+    const payload = {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    return {
+      message: 'Provider registered successfully',
+      user: { ...userWithoutPassword, ...newProvider },
+      accessToken,
+    };
+  }
+
+  async login(dto: LoginUserDto) {
     const email = dto.email.toLowerCase().trim();
 
     const user = await this.prisma.user.findUnique({
-    where: { email },  });
+      where: { email },
+      include: {
+        provider: true,
+        provider_member: { include: { provider: true } },
+      },
+    });
 
-     if (!user) {
-    throw new UnauthorizedException('Invalid email or password');
-  }
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'This account was created using Google. Please sign in with Google.',
+      );
+    }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-      if (!user.isActive) {
-    throw new UnauthorizedException('Your account is deactivated');
+    if (!user.isActive) {
+      throw new UnauthorizedException('Your account is deactivated');
+    }
+
+    // 1. Admin accounts cannot login via customer/provider login page
+    if (user.role === 'ADMIN') {
+      throw new UnauthorizedException(
+        'Admin accounts cannot log in via the customer portal. Please use the Admin portal.',
+      );
+    }
+
+    // 2. Provider & Staff login flow (from provider login page)
+    if (dto.isProvider) {
+      const isOwner = user.role === 'PROVIDER' || !!user.provider;
+      const isStaff =
+        user.role === 'PROVIDER_STAFF' ||
+        (user.provider_member && user.provider_member.length > 0);
+
+      if (!isOwner && !isStaff) {
+        throw new UnauthorizedException(
+          'No provider or staff account found for this email. Please log in as a customer or register as a provider.',
+        );
+      }
+
+      const payload = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: JWT_EXPIRES_IN,
+      });
+      const { password, ...userWithoutPassword } = user;
+
+      return {
+        message: isStaff
+          ? 'Staff logged in successfully'
+          : 'Provider logged in successfully',
+        accessToken,
+        redirectTo: '/dashboard/provider',
+        user: userWithoutPassword,
+      };
+    }
+
+    // 3. User / Customer login flow (all users logging in here redirect to /dashboard/user)
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const isStaffOrProvider =
+      user.role === 'PROVIDER' ||
+      user.role === 'PROVIDER_STAFF' ||
+      (user.provider_member && user.provider_member.length > 0);
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      message: 'User logged in successfully',
+      accessToken,
+      redirectTo: '/dashboard/user',
+      user: userWithoutPassword,
+    };
   }
 
+  async googleLogin(
+    idToken: string,
+    options?: {
+      isProvider?: boolean;
+      businessName?: string;
+      description?: string;
+    },
+  ) {
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new BadRequestException('Invalid or expired Google token');
+    }
+
+    if (!payload || !payload.email) {
+      throw new BadRequestException('Invalid Google token');
+    }
+    const { email, name, sub: googleId } = payload;
+
+    // Find or create user
+    let user = await this.prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+      include: {
+        provider: true,
+        provider_member: { include: { provider: true } },
+      },
+    });
+
+    const isProviderRequested =
+      options?.isProvider === true || Boolean(options?.businessName);
+
+    if (!user) {
+      const role = isProviderRequested ? 'PROVIDER' : 'USER';
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: name || email.split('@')[0],
+          googleId,
+          role,
+        },
+        include: {
+          provider: true,
+          provider_member: { include: { provider: true } },
+        },
+      });
+
+      if (isProviderRequested) {
+        const businessName =
+          options?.businessName?.trim() || `${user.name}'s Store`;
+        const provider = await this.prisma.provider.create({
+          data: {
+            userId: user.id,
+            businessName,
+            description: options?.description || '',
+            status: 'PENDING',
+          },
+        });
+        user.provider = provider;
+      }
+    } else {
+      if (!user.googleId) {
+        // Link Google ID if user previously registered with email/password
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+          include: {
+            provider: true,
+            provider_member: { include: { provider: true } },
+          },
+        });
+      }
+
+      // If user registered with Google as provider or converted
+      if (isProviderRequested && !user.provider) {
+        const businessName =
+          options?.businessName?.trim() || `${user.name}'s Store`;
+        const provider = await this.prisma.provider.create({
+          data: {
+            userId: user.id,
+            businessName,
+            description: options?.description || '',
+            status: 'PENDING',
+          },
+        });
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { role: 'PROVIDER' },
+          include: {
+            provider: true,
+            provider_member: { include: { provider: true } },
+          },
+        });
+      }
+    }
+
+    const isStaffOrProvider =
+      user.role === 'PROVIDER' ||
+      user.role === 'PROVIDER_STAFF' ||
+      Boolean(user.provider) ||
+      Boolean(user.provider_member?.length);
+
+    const effectiveRole = isStaffOrProvider
+      ? user.role === 'PROVIDER_STAFF'
+        ? 'PROVIDER_STAFF'
+        : 'PROVIDER'
+      : user.role;
+
+    const jwtPayload = {
+      id: user.id,
+      email: user.email,
+      role: effectiveRole,
+    };
+    const accessToken = this.jwtService.sign(jwtPayload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Logged in with Google successfully',
+      user: {
+        ...userWithoutPassword,
+        role: effectiveRole,
+      },
+      accessToken,
+      redirectTo: isProviderRequested ? '/dashboard/provider' : '/dashboard/user',
+    };
+  }
+
+  async becomeProvider(
+    userId: number,
+    dto: { businessName: string; description?: string },
+  ) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.provider || user.role === 'PROVIDER') {
+      throw new ConflictException('User is already registered as a provider');
+    }
+
+    if (!dto.businessName || !dto.businessName.trim()) {
+      throw new BadRequestException('Business name is required');
+    }
+
+    // Create provider record
+    const provider = await this.prisma.provider.create({
+      data: {
+        userId: user.id,
+        businessName: dto.businessName.trim(),
+        description: dto.description?.trim() || '',
+        status: 'PENDING',
+      },
+    });
+
+    // Update user role to PROVIDER
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { role: 'PROVIDER' },
+      include: { provider: true },
+    });
+
+    // Sign new JWT with PROVIDER role
     const payload = {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  };
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: 'PROVIDER',
+    };
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
 
-  const accessToken = this.jwtService.sign(payload);
+    const { password, ...userWithoutPassword } = updatedUser;
 
-  const { password, ...userWithoutPassword } = user;
+    return {
+      message: 'Successfully converted to provider account',
+      user: {
+        ...userWithoutPassword,
+        provider,
+      },
+      accessToken,
+      redirectTo: '/dashboard/provider',
+    };
+  }
 
-  return {
-    message: 'User logged in successfully',
-    accessToken,
-    user: userWithoutPassword,
-  };
 
+  async getProfile(userId: number) {
+    if (!userId) {
+      throw new UnauthorizedException('Authentication required');
+    }
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        address: true,
+        _count: {
+          select: {
+            order: true,
+            faviorate: true,
+            cart: true,
+          },
+        },
+      },
+    });
 
+    if (!user) {
+      throw new NotFoundException('User profile not found');
+    }
+
+    return user;
+  }
+
+  async updateProfile(userId: number, data: { name?: string }) {
+    if (!userId) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.name && { name: data.name.trim() }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    return updated;
+  }
+
+  //cart
+
+  private async getOrCreateCart(userId: number) {
+    let cart = await this.prisma.cart.findFirst({
+      where: { userId },
+    });
+    if (!cart) {
+      cart = await this.prisma.cart.create({
+        data: { userId },
+      });
+    }
+    return cart;
+  }
+
+  async getCart(userId: number) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const cart = await this.prisma.cart.findFirst({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                imageUrl: true,
+                providerId: true,
+                categoryId: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!cart) {
+      return { items: [], totalItems: 0, totalPrice: 0 };
+    }
+
+    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = cart.items.reduce(
+      (sum, item) => sum + item.quantity * (item.product?.price || 0),
+      0,
+    );
+
+    return {
+      items: cart.items,
+      totalItems,
+      totalPrice,
+    };
+  }
+
+  async syncCart(
+    userId: number,
+    items: { productId: string; quantity: number }[] = [],
+  ) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const cart = await this.getOrCreateCart(userId);
+
+    await this.prisma.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+
+    const validItems =
+      items?.filter((i) => i?.productId && i?.quantity > 0) || [];
+    if (validItems.length > 0) {
+      await this.prisma.cartItem.createMany({
+        data: validItems.map((item) => ({
+          cartId: cart.id,
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      });
+    }
+
+    return this.getCart(userId);
+  }
+
+  async updateCartItem(userId: number, productId: string, quantity: number) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+    if (!productId) throw new NotFoundException('Product ID is required');
+
+    const cart = await this.getOrCreateCart(userId);
+
+    const existingItem = await this.prisma.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
+    });
+
+    if (quantity <= 0) {
+      if (existingItem) {
+        await this.prisma.cartItem.delete({
+          where: { id: existingItem.id },
+        });
+      }
+    } else if (existingItem) {
+      await this.prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity },
+      });
+    } else {
+      await this.prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity,
+        },
+      });
+    }
+
+    return { success: true, message: 'Cart updated' };
+  }
+
+  // =========================
+  // FAVORITES / WISHLIST
+  // =========================
+
+  async getFavorites(userId: number) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const favorites = await this.prisma.faviorate.findMany({
+      where: { userId },
+      include: {
+        product: {
+          include: {
+            category: true,
+            provider: {
+              select: {
+                id: true,
+                businessName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { id: 'desc' },
+    });
+
+    return favorites.map((f) => ({
+      id: f.id,
+      productId: f.productId,
+      product: f.product,
+    }));
+  }
+
+  async toggleFavorite(userId: number, productId: string) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+    if (!productId) throw new NotFoundException('Product ID is required');
+
+    const existing = await this.prisma.faviorate.findFirst({
+      where: { userId, productId },
+    });
+
+    if (existing) {
+      await this.prisma.faviorate.delete({
+        where: { id: existing.id },
+      });
+      return {
+        isFavorite: false,
+        productId,
+        message: 'Removed from favorites',
+      };
+    } else {
+      await this.prisma.faviorate.create({
+        data: {
+          userId,
+          productId,
+        },
+      });
+      return { isFavorite: true, productId, message: 'Added to favorites' };
+    }
+  }
+
+  // =========================
+  // ADDRESS MANAGEMENT
+  // =========================
+
+  async getUserAddresses(userId: number) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    return this.prisma.address.findMany({
+      where: { userId },
+      orderBy: { id: 'desc' },
+    });
+  }
+
+  async createAddress(
+    userId: number,
+    data: {
+      street: string;
+      city: string;
+      state: string;
+      zip: string;
+      country: string;
+    },
+  ) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+    if (!data.street || !data.city || !data.zip) {
+      throw new BadRequestException('Street, city, and zip code are required');
+    }
+
+    const address = await this.prisma.address.create({
+      data: {
+        userId,
+        street: data.street.trim(),
+        city: data.city.trim(),
+        state: (data.state || '').trim(),
+        zip: data.zip.trim(),
+        country: (data.country || 'USA').trim(),
+      },
+    });
+
+    return address;
+  }
+
+  async updateAddress(
+    userId: number,
+    addressId: string,
+    data: {
+      street?: string;
+      city?: string;
+      state?: string;
+      zip?: string;
+      country?: string;
+    },
+  ) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    const updated = await this.prisma.address.update({
+      where: { id: addressId },
+      data: {
+        ...(data.street && { street: data.street.trim() }),
+        ...(data.city && { city: data.city.trim() }),
+        ...(data.state && { state: data.state.trim() }),
+        ...(data.zip && { zip: data.zip.trim() }),
+        ...(data.country && { country: data.country.trim() }),
+      },
+    });
+
+    return updated;
+  }
+
+  async deleteAddress(userId: number, addressId: string) {
+    if (!userId) throw new UnauthorizedException('Authentication required');
+
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+      include: { _count: { select: { order: true } } },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    if (address._count.order > 0) {
+      throw new BadRequestException(
+        'Cannot delete an address that is linked to existing orders',
+      );
+    }
+
+    await this.prisma.address.delete({
+      where: { id: addressId },
+    });
+
+    return { success: true, message: 'Address removed successfully' };
   }
 }
