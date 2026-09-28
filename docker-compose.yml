@@ -72,6 +72,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ecommerce
       JWT_SECRET: "supersecretkey123"
+      JWT_EXPIRES_IN: "1d"
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       REDIS_URL: redis://redis:6379
       GOOGLE_CLIENT_ID: 723393176190-guo4hjvurf35s1649hcd9tr44nir359o.apps.googleusercontent.com

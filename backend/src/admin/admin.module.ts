@@ -9,11 +9,11 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'supersecretkey123',
-      signOptions: { expiresIn: '7d' },
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService, JwtModule],
 })
-export class AdminModule {}
+export class AdminModule { }

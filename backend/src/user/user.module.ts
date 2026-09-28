@@ -7,11 +7,11 @@ import { UserService } from './user.service';
   imports: [
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'supersecretkey123',
-      signOptions: { expiresIn: '7d' },
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService, JwtModule],
 })
-export class UserModule {}
+export class UserModule { }

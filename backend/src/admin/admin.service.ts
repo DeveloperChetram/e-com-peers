@@ -15,7 +15,7 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   // =========================
   // AUTH
@@ -51,7 +51,9 @@ export class AdminService {
       role: user.role,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: (process.env.JWT_EXPIRES_IN || '1d') as any,
+    });
     const { password, ...userWithoutPassword } = user;
 
     return {

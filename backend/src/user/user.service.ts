@@ -16,6 +16,7 @@ import { OAuth2Client } from 'google-auth-library';
 
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '1d') as any;
 
 
 
@@ -24,7 +25,7 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterUserDto) {
     // 1. Check if user already exists
@@ -59,7 +60,9 @@ export class UserService {
       role: newUser.role,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
 
     // 5. Omit password from response
     const { password, ...userWithoutPassword } = newUser;
@@ -127,7 +130,9 @@ export class UserService {
       role: newUser.role,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
 
     return {
       message: 'Provider registered successfully',
@@ -192,7 +197,9 @@ export class UserService {
         role: user.role,
       };
 
-      const accessToken = this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: JWT_EXPIRES_IN,
+      });
       const { password, ...userWithoutPassword } = user;
 
       return {
@@ -217,7 +224,9 @@ export class UserService {
       user.role === 'PROVIDER_STAFF' ||
       (user.provider_member && user.provider_member.length > 0);
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
     const { password, ...userWithoutPassword } = user;
 
     return {
@@ -345,7 +354,9 @@ export class UserService {
       email: user.email,
       role: effectiveRole,
     };
-    const accessToken = this.jwtService.sign(jwtPayload);
+    const accessToken = this.jwtService.sign(jwtPayload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
     const { password, ...userWithoutPassword } = user;
 
     return {
@@ -407,7 +418,9 @@ export class UserService {
       email: updatedUser.email,
       role: 'PROVIDER',
     };
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
 
     const { password, ...userWithoutPassword } = updatedUser;
 
