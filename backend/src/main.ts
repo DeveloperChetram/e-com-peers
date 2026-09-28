@@ -8,11 +8,18 @@ import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
+const allowedOrigins = [
+  'https://e-com-peers.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     instrument: ObserveInstrument,
   });
-  app.enableCors({ credentials: true, origin: 'https://e-com-peers.vercel.app/' });
+  app.enableCors({ credentials: true, origin: allowedOrigins});
   app.use(cookieParser());
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
