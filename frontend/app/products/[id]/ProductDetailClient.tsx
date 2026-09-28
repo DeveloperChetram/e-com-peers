@@ -69,9 +69,8 @@ export default function ProductDetailClient({
 
         // Fetch related products from the same category or catalog
         const all = await getAllProducts();
-        if (Array.isArray(all)) {
-          setRelatedProducts(all.filter((p) => p.id !== id).slice(0, 4));
-        }
+        const productList = Array.isArray(all) ? all : all?.data || [];
+        setRelatedProducts(productList.filter((p) => p.id !== id).slice(0, 4));
       } catch (err) {
         console.error('Failed to load product detail:', err);
       } finally {

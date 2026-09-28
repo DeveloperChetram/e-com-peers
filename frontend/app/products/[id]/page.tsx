@@ -42,9 +42,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
     ]);
 
     product = productData;
-    if (Array.isArray(allProducts)) {
-      relatedProducts = allProducts.filter((p: ProductItem) => p.id !== id).slice(0, 4);
-    }
+    const productList: ProductItem[] = Array.isArray(allProducts)
+      ? allProducts
+      : (allProducts as any)?.data || [];
+    relatedProducts = productList.filter((p: ProductItem) => p.id !== id).slice(0, 4);
   } catch (error) {
     console.error('SSR Product Fetch Error:', error);
   }

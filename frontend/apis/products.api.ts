@@ -34,13 +34,70 @@ export interface CreateProductData {
   isPublished?: boolean;
 }
 
-export const getAllProducts = async () => {
+export interface PaginatedProductsResponse {
+  data: ProductItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    skip: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export const getAllProducts = async (params?: {
+  page?: number;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  categoryId?: string;
+}): Promise<PaginatedProductsResponse> => {
   try {
-    const response = await apiClient('/products');
+    const query = new URLSearchParams();
+    if (params?.page) query.append('page', String(params.page));
+    if (params?.limit) query.append('limit', String(params.limit));
+    if (params?.skip !== undefined) query.append('skip', String(params.skip));
+    if (params?.search) query.append('search', params.search);
+    if (params?.categoryId && params.categoryId !== 'ALL')
+      query.append('categoryId', params.categoryId);
+
+    const qs = query.toString();
+    const endpoint = `/products${qs ? `?${qs}` : ''}`;
+    const response = await apiClient(endpoint);
+
+    // If backend returns array, normalize to PaginatedProductsResponse
+    if (Array.isArray(response)) {
+      return {
+        data: response,
+        meta: {
+          total: response.length,
+          page: 1,
+          limit: response.length,
+          skip: 0,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      };
+    }
+
     return response;
   } catch (error) {
     console.error('Failed to get products:', error);
-    return [];
+    return {
+      data: [],
+      meta: {
+        total: 0,
+        page: 1,
+        limit: 8,
+        skip: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+    };
   }
 };
 

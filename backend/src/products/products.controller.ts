@@ -63,8 +63,20 @@ export class ProductsController {
   }
 
   @Get()
-  getProducts() {
-    return this.productsService.getProducts();
+  getProducts(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
+    @Query('search') search?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    return this.productsService.getProducts({
+      page,
+      limit,
+      skip,
+      search,
+      categoryId,
+    });
   }
 
   @Get('filter')

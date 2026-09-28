@@ -64,9 +64,7 @@ export class ProductsService {
       },
     });
 
-    try {
-      await this.redis.del('products:all');
-    } catch {}
+    await this.clearProductsCache();
 
     return product;
   }
@@ -176,7 +174,7 @@ export class ProductsService {
       data.imageUrl = `/uploads/products/${file.filename}`;
     }
 
-    return this.prisma.product.update({
+    const updated = await this.prisma.product.update({
       where: { id },
       data,
       include: {
@@ -184,6 +182,10 @@ export class ProductsService {
         provider: true,
       },
     });
+
+    await this.clearProductsCache();
+
+    return updated;
   }
 
   async togglePublish(id: string, user: any, isPublished?: boolean) {
@@ -207,6 +209,8 @@ export class ProductsService {
         category: true,
       },
     });
+
+    await this.clearProductsCache();
 
     return {
       success: true,
@@ -244,14 +248,64 @@ export class ProductsService {
 
     await this.prisma.product.delete({ where: { id } });
 
+    await this.clearProductsCache();
+
     return {
       success: true,
       message: 'Product deleted successfully',
     };
   }
 
-  async getProducts() {
-    const cacheKey = 'products:all';
+  private async clearProductsCache() {
+    try {
+      const keys = await this.redis.keys('products:*');
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+      }
+    } catch {}
+  }
+
+  async getProducts(params?: {
+    page?: number | string;
+    limit?: number | string;
+    skip?: number | string;
+    search?: string;
+    categoryId?: string;
+  }) {
+    const page = Math.max(1, Number(params?.page) || 1);
+    const limit = Math.max(1, Number(params?.limit) || 8);
+    const skip =
+      params?.skip !== undefined
+        ? Number(params?.skip)
+        : (page - 1) * limit;
+
+    const where: any = {
+      isApproved: true,
+      isPublished: true,
+      ...(params?.categoryId && params.categoryId !== 'ALL'
+        ? { categoryId: params.categoryId }
+        : {}),
+      ...(params?.search?.trim()
+        ? {
+            OR: [
+              {
+                name: {
+                  contains: params.search.trim(),
+                  mode: 'insensitive' as const,
+                },
+              },
+              {
+                description: {
+                  contains: params.search.trim(),
+                  mode: 'insensitive' as const,
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const cacheKey = `products:all:${page}:${limit}:${skip}:${params?.categoryId || 'all'}:${params?.search || ''}`;
     try {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
@@ -261,24 +315,40 @@ export class ProductsService {
       // Redis fallback to database
     }
 
-    const products = await this.prisma.product.findMany({
-      where: {
-        isApproved: true,
-        isPublished: true,
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        include: {
+          category: true,
+          provider: true,
+        },
+        orderBy: { id: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    const result = {
+      data: products,
+      meta: {
+        total,
+        page,
+        limit,
+        skip,
+        totalPages: Math.ceil(total / limit) || 1,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
       },
-      include: {
-        category: true,
-        provider: true,
-      },
-    });
+    };
 
     try {
-      await this.redis.set(cacheKey, JSON.stringify(products), 'EX', 300);
+      await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 300);
     } catch {
       // Fail silently on cache write failure
     }
 
-    return products;
+    return result;
   }
 
   async getProductById(id: string) {
