@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/redux/hooks';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
 import { becomeProvider } from '@/apis/auth.api';
+import { saveUserToStorage } from '@/utils/userStorage';
 import { Store, Building2, FileText, X, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface BecomeProviderModalProps {
@@ -40,6 +41,7 @@ export default function BecomeProviderModal({ isOpen, onClose }: BecomeProviderM
         description: description.trim() || undefined,
       });
 
+      saveUserToStorage(res.user, 'PROVIDER');
       dispatch(
         setUserAndToken({
           user: res.user,

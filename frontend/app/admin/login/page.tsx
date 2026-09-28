@@ -18,6 +18,7 @@ import {
 import { loginAdmin } from '@/apis/auth.api';
 import { useAppDispatch } from '@/redux/hooks';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
+import { saveUserToStorage } from '@/utils/userStorage';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function AdminLoginPage() {
       setLoading(true);
       const res = await loginAdmin({ email, password });
 
+      saveUserToStorage(res.user, res.user.role);
       dispatch(
         setUserAndToken({
           user: res.user,

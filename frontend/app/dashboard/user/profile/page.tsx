@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { RootState } from '@/redux/store';
 import { setUser } from '@/redux/slices/auth.slice';
+import { saveUserToStorage } from '@/utils/userStorage';
 
 export default function UserProfileSettingsPage() {
   const dispatch = useDispatch();
@@ -31,7 +32,9 @@ export default function UserProfileSettingsPage() {
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      dispatch(setUser({ user: { ...(user as any), name }, role: (user as any)?.role }));
+      const updatedUser = { ...(user as any), name };
+      saveUserToStorage(updatedUser, (user as any)?.role);
+      dispatch(setUser({ user: updatedUser, role: (user as any)?.role }));
     }
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);

@@ -26,6 +26,7 @@ import { setUserAndToken } from '@/redux/slices/auth.slice';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '@/redux/hooks';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { saveUserToStorage } from '@/utils/userStorage';
 
 interface RegisterFormProps {
   initialRole?: string;
@@ -95,6 +96,7 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
           password: data.password,
         };
         const res = await registerUser(userPayload);
+        saveUserToStorage(res.user, res.user?.role || 'USER');
         dispatch(
           setUserAndToken({
             user: res.user,
@@ -117,6 +119,7 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         password: data.password,
       };
       const res = await registerProvider(providerPayload);
+      saveUserToStorage(res.user, res.user?.role || 'PROVIDER');
       dispatch(
         setUserAndToken({
           user: res.user,
@@ -165,11 +168,13 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
       const res = await googleAuth(credentialResponse.credential, {
         isProvider: false,
       });
+      const resolvedCustomerRole = res.user?.role || 'USER';
+      saveUserToStorage(res.user, resolvedCustomerRole);
       dispatch(
         setUserAndToken({
           user: res.user,
           token: res.accessToken,
-          role: res.user?.role || 'USER',
+          role: resolvedCustomerRole,
         })
       );
       setServerSuccess('Signed in with Google! Redirecting...');
@@ -195,6 +200,7 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         businessName,
         description,
       });
+      saveUserToStorage(res.user, 'PROVIDER');
       dispatch(
         setUserAndToken({
           user: res.user,

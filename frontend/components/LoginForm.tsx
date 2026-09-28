@@ -22,6 +22,7 @@ import {
 import { googleAuth, loginUser } from '@/apis/auth.api';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
+import { saveUserToStorage } from '@/utils/userStorage';
 
 interface LoginFormProps {
   initialRole?: string;
@@ -76,6 +77,7 @@ export function LoginForm({ initialRole }: LoginFormProps) {
         isProvider: isProviderMode,
       });
 
+      saveUserToStorage(res.user, res.user.role);
       dispatch(setUserAndToken({ user: res.user, token: res.accessToken, role: res.user.role }));
       setSuccessMessage(res?.message || 'Login successful! Redirecting...');
 
@@ -99,6 +101,7 @@ export function LoginForm({ initialRole }: LoginFormProps) {
         isProvider: isProviderMode,
       });
       const resolvedRole = res.user?.role || (isProviderMode ? 'PROVIDER' : 'USER');
+      saveUserToStorage(res.user, resolvedRole);
       dispatch(
         setUserAndToken({
           user: res.user,

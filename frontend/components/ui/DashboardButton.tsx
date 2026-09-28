@@ -5,9 +5,10 @@ import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
 
 export default function DashboardButton() {
-  const user = useAppSelector((state) => state.auth);
+  const auth = useAppSelector((state) => state.auth);
+  const effectiveRole = auth.role || (auth.user as any)?.role;
   
-  if (user.role === 'PROVIDER') {
+  if (effectiveRole === 'PROVIDER' || effectiveRole === 'PROVIDER_STAFF') {
     return (
       <div className="inline-flex items-center gap-1.5">
         <Link
@@ -26,7 +27,7 @@ export default function DashboardButton() {
         </Link>
       </div>
     );
-  } else if (user.role === 'ADMIN') {
+  } else if (effectiveRole === 'ADMIN') {
     return (
       <Link
         href="/dashboard/admin"
@@ -36,7 +37,7 @@ export default function DashboardButton() {
         <span>Admin Portal</span>
       </Link>
     );
-  } else if (user.role === 'USER') {
+  } else if (effectiveRole === 'USER') {
     return (
       <Link
         href="/dashboard/user"

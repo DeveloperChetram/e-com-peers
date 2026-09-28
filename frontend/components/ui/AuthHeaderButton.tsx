@@ -7,6 +7,7 @@ import { User, LogOut } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { logout } from '@/redux/slices/auth.slice';
 import { logoutUser } from '@/apis/auth.api';
+import { clearUserFromStorage } from '@/utils/userStorage';
 
 interface AuthHeaderButtonProps {
   size?: number;
@@ -29,6 +30,7 @@ export default function AuthHeaderButton({
     } catch {
       // Ignore network errors on logout
     }
+    clearUserFromStorage();
     dispatch(logout());
     router.replace('/login');
   };

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { saveUserToStorage, clearUserFromStorage } from '@/utils/userStorage';
 
 interface AuthUser {
   id: number | string;
@@ -32,20 +33,24 @@ export const counterSlice = createSlice({
       state,
       action: PayloadAction<{ user: AuthUser; token: string | null; role?: string }>
     ) => {
+      const resolvedRole = action.payload.role || action.payload.user?.role || null;
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      state.role = action.payload.role || action.payload.user?.role || null;
+      state.role = resolvedRole;
       state.isInitialized = true;
+      saveUserToStorage(action.payload.user, resolvedRole);
     },
     setUser: (
       state,
       action: PayloadAction<{ user: AuthUser; role?: string }>
     ) => {
+      const resolvedRole = action.payload.role || action.payload.user?.role || null;
       state.user = action.payload.user;
       state.isAuthenticated = true;
-      state.role = action.payload.role || action.payload.user?.role || null;
+      state.role = resolvedRole;
       state.isInitialized = true;
+      saveUserToStorage(action.payload.user, resolvedRole);
     },
     setToken: (
       state,
@@ -65,6 +70,7 @@ export const counterSlice = createSlice({
       state.isAuthenticated = false;
       state.role = null;
       state.isInitialized = true;
+      clearUserFromStorage();
     },
   },
 });
