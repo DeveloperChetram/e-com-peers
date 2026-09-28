@@ -30,7 +30,8 @@ export class ProviderService {
 
   // List all staff members for the provider store
   async getStaffMembers(providerId: string) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     return this.prisma.providerMember.findMany({
       where: { providerId },
@@ -52,7 +53,8 @@ export class ProviderService {
 
   // Create a new staff account and link to provider store
   async createStaffMember(providerId: string, dto: CreateStaffDto) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
     if (!dto.email || !dto.name) {
       throw new BadRequestException('Staff name and email are required');
     }
@@ -116,13 +118,20 @@ export class ProviderService {
     return {
       message: 'Staff member added successfully',
       member,
-      tempPasswordNotice: dto.password ? undefined : 'Temporary default password: Staff@123',
+      tempPasswordNotice: dto.password
+        ? undefined
+        : 'Temporary default password: Staff@123',
     };
   }
 
   // Update staff member
-  async updateStaffMember(providerId: string, memberId: number, dto: UpdateStaffDto) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+  async updateStaffMember(
+    providerId: string,
+    memberId: number,
+    dto: UpdateStaffDto,
+  ) {
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const member = await this.prisma.providerMember.findFirst({
       where: { id: memberId, providerId },
@@ -168,7 +177,8 @@ export class ProviderService {
 
   // Delete/remove staff member
   async deleteStaffMember(providerId: string, memberId: number) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const member = await this.prisma.providerMember.findFirst({
       where: { id: memberId, providerId },
@@ -189,15 +199,22 @@ export class ProviderService {
   // 2. MOVE TO SHIPMENT & DISPATCH
   // ==========================================
 
-  async moveToShipment(providerId: string, staffUserId: number, dto: CreateShipmentDto) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+  async moveToShipment(
+    providerId: string,
+    staffUserId: number,
+    dto: CreateShipmentDto,
+  ) {
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const order = await this.prisma.order.findFirst({
       where: { id: dto.orderId, providerId },
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found or does not belong to your store');
+      throw new NotFoundException(
+        'Order not found or does not belong to your store',
+      );
     }
 
     // Generate tracking number if not explicitly passed
@@ -206,8 +223,10 @@ export class ProviderService {
       `TRK-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     const carrier = dto.carrier?.trim() || 'Express';
-    const initialLocation = dto.initialLocation?.trim() || 'Merchant Fulfillment Center';
-    const note = dto.note?.trim() || 'Order accepted and handed to shipment department';
+    const initialLocation =
+      dto.initialLocation?.trim() || 'Merchant Fulfillment Center';
+    const note =
+      dto.note?.trim() || 'Order accepted and handed to shipment department';
 
     // Create Shipment record
     const shipment = await this.prisma.shipment.create({
@@ -216,7 +235,8 @@ export class ProviderService {
         providerId,
         trackingNumber,
         carrier,
-        assignedStaffId: dto.assignedStaffId || (staffUserId ? Number(staffUserId) : null),
+        assignedStaffId:
+          dto.assignedStaffId || (staffUserId ? Number(staffUserId) : null),
         status: ShipmentStatus.DISPATCHED,
         currentLocation: initialLocation,
         logs: {
@@ -257,7 +277,8 @@ export class ProviderService {
 
   // List all shipments for provider
   async getShipments(providerId: string, query: any = {}) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const where: any = { providerId };
     if (query?.status) where.status = query.status;
@@ -284,7 +305,8 @@ export class ProviderService {
 
   // Get single shipment detail with complete checkpoint timeline
   async getShipment(providerId: string, shipmentId: string) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const shipment = await this.prisma.shipment.findFirst({
       where: { id: shipmentId, providerId },
@@ -316,16 +338,19 @@ export class ProviderService {
     providerId: string,
     staffUserId: number,
     shipmentId: string,
-    dto: AddShipmentLogDto
+    dto: AddShipmentLogDto,
   ) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const shipment = await this.prisma.shipment.findFirst({
       where: { id: shipmentId, providerId },
     });
 
     if (!shipment) {
-      throw new NotFoundException('Shipment not found or does not belong to your store');
+      throw new NotFoundException(
+        'Shipment not found or does not belong to your store',
+      );
     }
 
     // Create log entry
@@ -399,7 +424,7 @@ export class ProviderService {
     userId: number,
     orderId: string,
     type: 'CANCEL' | 'RETURN',
-    reason?: string
+    reason?: string,
   ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -410,13 +435,16 @@ export class ProviderService {
     }
 
     const nextStatus =
-      type === 'CANCEL' ? OrderStatus.CANCEL_REQUESTED : OrderStatus.RETURN_REQUESTED;
+      type === 'CANCEL'
+        ? OrderStatus.CANCEL_REQUESTED
+        : OrderStatus.RETURN_REQUESTED;
 
     const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         status: nextStatus,
-        returnReason: reason?.trim() || 'Customer requested return/cancellation',
+        returnReason:
+          reason?.trim() || 'Customer requested return/cancellation',
       },
     });
 
@@ -431,16 +459,19 @@ export class ProviderService {
     providerId: string,
     orderId: string,
     approved: boolean,
-    decisionNote?: string
+    decisionNote?: string,
   ) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, providerId },
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found or does not belong to your store');
+      throw new NotFoundException(
+        'Order not found or does not belong to your store',
+      );
     }
 
     let nextStatus: OrderStatus;
@@ -453,7 +484,10 @@ export class ProviderService {
       }
     } else {
       // Revert back to active state
-      nextStatus = order.status === OrderStatus.CANCEL_REQUESTED ? OrderStatus.CONFIRMED : OrderStatus.SHIPPED;
+      nextStatus =
+        order.status === OrderStatus.CANCEL_REQUESTED
+          ? OrderStatus.CONFIRMED
+          : OrderStatus.SHIPPED;
     }
 
     const updated = await this.prisma.order.update({
@@ -473,15 +507,19 @@ export class ProviderService {
         approved,
         decisionNote,
       });
-      this.rabbitMQService.sendEmail({
-        to: updated.user.email,
-        subject: `Update on your Order #${orderId.slice(-6).toUpperCase()} Request - SHOP.CO`,
-        html,
-      }).catch(() => {});
+      this.rabbitMQService
+        .sendEmail({
+          to: updated.user.email,
+          subject: `Update on your Order #${orderId.slice(-6).toUpperCase()} Request - SHOP.CO`,
+          html,
+        })
+        .catch(() => {});
     }
 
     return {
-      message: approved ? 'Request approved successfully' : 'Request rejected by store provider',
+      message: approved
+        ? 'Request approved successfully'
+        : 'Request rejected by store provider',
       order: updated,
     };
   }
@@ -492,9 +530,10 @@ export class ProviderService {
     staffUserId: number,
     orderId: string,
     action: 'RETURNED' | 'REFUNDED',
-    note?: string
+    note?: string,
   ) {
-    if (!providerId) throw new UnauthorizedException('Provider store identification required');
+    if (!providerId)
+      throw new UnauthorizedException('Provider store identification required');
 
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, providerId },
@@ -508,7 +547,8 @@ export class ProviderService {
     const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
-        status: action === 'REFUNDED' ? OrderStatus.REFUNDED : OrderStatus.RETURNED,
+        status:
+          action === 'REFUNDED' ? OrderStatus.REFUNDED : OrderStatus.RETURNED,
       },
     });
 
@@ -516,7 +556,9 @@ export class ProviderService {
     if (order.shipment?.[0]) {
       const shipId = order.shipment[0].id;
       const shipStatus =
-        action === 'REFUNDED' ? ShipmentStatus.REFUNDED : ShipmentStatus.RETURNED;
+        action === 'REFUNDED'
+          ? ShipmentStatus.REFUNDED
+          : ShipmentStatus.RETURNED;
 
       await this.prisma.shipment.update({
         where: { id: shipId },

@@ -5,10 +5,12 @@ export interface EmailItem {
   imageUrl?: string;
 }
 
+const DASHBOARD_URL = 'http://localhost:3000/dashboard/user';
 
-const DASHBOARD_URL = 'http://localhost:3000/dashboard/user'
-
-export function formatAddress(addressDetail?: string | null, addressObj?: any): string {
+export function formatAddress(
+  addressDetail?: string | null,
+  addressObj?: any,
+): string {
   if (addressDetail) {
     try {
       const parsed = JSON.parse(addressDetail);
@@ -17,13 +19,19 @@ export function formatAddress(addressDetail?: string | null, addressObj?: any): 
         const parts = [
           parsed.street,
           parsed.city,
-          parsed.state ? `${parsed.state} ${parsed.zip || ''}`.trim() : parsed.zip,
+          parsed.state
+            ? `${parsed.state} ${parsed.zip || ''}`.trim()
+            : parsed.zip,
           parsed.country,
         ].filter(Boolean);
         if (parts.length > 0) return parts.join(', ');
       }
     } catch {}
-    if (typeof addressDetail === 'string' && addressDetail.trim() && !addressDetail.startsWith('{')) {
+    if (
+      typeof addressDetail === 'string' &&
+      addressDetail.trim() &&
+      !addressDetail.startsWith('{')
+    ) {
       return addressDetail;
     }
   }
@@ -32,7 +40,9 @@ export function formatAddress(addressDetail?: string | null, addressObj?: any): 
     const parts = [
       addressObj.street,
       addressObj.city,
-      addressObj.state ? `${addressObj.state} ${addressObj.zip || ''}`.trim() : addressObj.zip,
+      addressObj.state
+        ? `${addressObj.state} ${addressObj.zip || ''}`.trim()
+        : addressObj.zip,
       addressObj.country,
     ].filter(Boolean);
     if (parts.length > 0) return parts.join(', ');
@@ -110,7 +120,7 @@ export function orderPlacedTemplate(params: {
           $${(item.price * item.quantity).toFixed(2)}
         </td>
       </tr>
-    `
+    `,
     )
     .join('');
 
@@ -240,7 +250,10 @@ export function returnOrCancelRequestedTemplate(params: {
   reason?: string;
 }): string {
   const shortId = params.orderId.slice(-6).toUpperCase();
-  const title = params.type === 'CANCEL' ? 'Cancellation Request Received' : 'Return Request Received';
+  const title =
+    params.type === 'CANCEL'
+      ? 'Cancellation Request Received'
+      : 'Return Request Received';
 
   const body = `
     <div style="margin-bottom: 20px;">
@@ -289,17 +302,20 @@ export function orderStatusUpdatedTemplate(params: {
     badgeColor = '#e0e7ff';
     badgeTextColor = '#4338ca';
     headline = 'Your Order Has Been Confirmed!';
-    message = 'The merchant has confirmed your order and is currently preparing your package for dispatch.';
+    message =
+      'The merchant has confirmed your order and is currently preparing your package for dispatch.';
   } else if (params.newStatus === 'SHIPPED') {
     badgeColor = '#ede9fe';
     badgeTextColor = '#6d28d9';
     headline = 'Your Order Is On The Way!';
-    message = 'Your package has been dispatched and handed over to the courier.';
+    message =
+      'Your package has been dispatched and handed over to the courier.';
   } else if (params.newStatus === 'DELIVERED') {
     badgeColor = '#ecfdf5';
     badgeTextColor = '#047857';
     headline = 'Package Delivered!';
-    message = 'Your order has been marked as delivered. We hope you enjoy your purchase!';
+    message =
+      'Your order has been marked as delivered. We hope you enjoy your purchase!';
   } else if (params.newStatus === 'CANCELLED') {
     badgeColor = '#ffe4e6';
     badgeTextColor = '#e11d48';
@@ -364,7 +380,9 @@ export function returnDecisionTemplate(params: {
   decisionNote?: string;
 }): string {
   const shortId = params.orderId.slice(-6).toUpperCase();
-  const headline = params.approved ? 'Your Request Has Been Approved' : 'Your Request Has Been Declined';
+  const headline = params.approved
+    ? 'Your Request Has Been Approved'
+    : 'Your Request Has Been Declined';
   const badgeColor = params.approved ? '#ecfdf5' : '#fff1f2';
   const badgeText = params.approved ? '#047857' : '#e11d48';
 

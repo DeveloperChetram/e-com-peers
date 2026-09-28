@@ -19,7 +19,6 @@ export class MailService {
   }
 
   private initTransporter(): boolean {
-    
     const host = process.env.MAIL_HOST;
     const port = Number(process.env.MAIL_PORT) || 465;
     const user = process.env.MAIL_USER;
@@ -48,7 +47,10 @@ export class MailService {
       this.initTransporter();
     }
 
-    const from = process.env.MAIL_FROM || process.env.MAIL_USER || 'SHOP.CO <no-reply@shop.co>';
+    const from =
+      process.env.MAIL_FROM ||
+      process.env.MAIL_USER ||
+      'SHOP.CO <no-reply@shop.co>';
 
     if (this.transporter) {
       try {
@@ -59,20 +61,29 @@ export class MailService {
           text: options.text,
           html: options.html,
         });
-        this.logger.log(`REAL EMAIL SENT to ${options.to} (Message ID: ${info.messageId})`);
+        this.logger.log(
+          `REAL EMAIL SENT to ${options.to} (Message ID: ${info.messageId})`,
+        );
         return info;
       } catch (err: any) {
-        this.logger.error(`Failed to send real email to ${options.to}:`, err.message);
+        this.logger.error(
+          `Failed to send real email to ${options.to}:`,
+          err.message,
+        );
         throw err;
       }
     } else {
       // Local dev simulated email
-      this.logger.log(`==================== [EMAIL SIMULATION] ====================`);
+      this.logger.log(
+        `==================== [EMAIL SIMULATION] ====================`,
+      );
       this.logger.log(`FROM:    ${from}`);
       this.logger.log(`TO:      ${options.to}`);
       this.logger.log(`SUBJECT: ${options.subject}`);
       this.logger.log(`BODY:    ${options.text || options.html}`);
-      this.logger.log(`============================================================`);
+      this.logger.log(
+        `============================================================`,
+      );
       return { messageId: 'simulated-dev-id' };
     }
   }

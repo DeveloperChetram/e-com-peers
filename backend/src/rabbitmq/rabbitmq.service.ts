@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { MailService, SendMailOptions } from '../mail/mail.service';
 
@@ -35,15 +40,21 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         // Ensure the queue exists and survives broker restarts
         await this.channel.assertQueue(EMAIL_QUEUE, { durable: true });
 
-        this.logger.log(`Connected to RabbitMQ on ${url}. Queue "${EMAIL_QUEUE}" ready.`);
+        this.logger.log(
+          `Connected to RabbitMQ on ${url}. Queue "${EMAIL_QUEUE}" ready.`,
+        );
 
         // Start listening for email tasks
         this.startConsumer();
         return;
       } catch (err: any) {
-        this.logger.warn(`RabbitMQ connection attempt ${i + 1}/${retries} failed: ${err.message}. Retrying in ${delay / 1000}s...`);
+        this.logger.warn(
+          `RabbitMQ connection attempt ${i + 1}/${retries} failed: ${err.message}. Retrying in ${delay / 1000}s...`,
+        );
         if (i === retries - 1) {
-          this.logger.error('Could not connect to RabbitMQ broker. Emails will be queued once available.');
+          this.logger.error(
+            'Could not connect to RabbitMQ broker. Emails will be queued once available.',
+          );
         } else {
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
@@ -54,7 +65,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   // 2. PRODUCER: Send an email job to the queue
   async sendEmail(payload: SendMailOptions): Promise<boolean> {
     if (!this.channel) {
-      this.logger.warn(`RabbitMQ channel not ready. Falling back to direct email sending for ${payload.to}.`);
+      this.logger.warn(
+        `RabbitMQ channel not ready. Falling back to direct email sending for ${payload.to}.`,
+      );
       await this.mailService.sendMail(payload);
       return false;
     }
@@ -63,7 +76,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       const message = Buffer.from(JSON.stringify(payload));
       // persistent: true ensures messages are saved to disk
       this.channel.sendToQueue(EMAIL_QUEUE, message, { persistent: true });
-      this.logger.log(`[RabbitMQ] Email job published to queue for: ${payload.to}`);
+      this.logger.log(
+        `[RabbitMQ] Email job published to queue for: ${payload.to}`,
+      );
       return true;
     } catch (err) {
       this.logger.error(`[RabbitMQ] Failed to publish message:`, err);
@@ -86,7 +101,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
           const content = msg.content.toString();
           const emailData: SendMailOptions = JSON.parse(content);
 
-          this.logger.log(`[RabbitMQ] Worker received email job: ${emailData.subject} -> ${emailData.to}`);
+          this.logger.log(
+            `[RabbitMQ] Worker received email job: ${emailData.subject} -> ${emailData.to}`,
+          );
 
           // Send email via Nodemailer
           await this.mailService.sendMail(emailData);
@@ -94,14 +111,19 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
           // Acknowledge task completion so RabbitMQ removes it from queue
           this.channel.ack(msg);
         } catch (err) {
-          this.logger.error(`[RabbitMQ] Worker failed to process message:`, err);
+          this.logger.error(
+            `[RabbitMQ] Worker failed to process message:`,
+            err,
+          );
           // nack without requeue to prevent infinite crash loop, or requeue if transient
           this.channel.nack(msg, false, false);
         }
       },
-      { noAck: false } // manual acknowledgement
+      { noAck: false }, // manual acknowledgement
     );
 
-    this.logger.log(`[RabbitMQ] Email worker listener active on queue: "${EMAIL_QUEUE}".`);
+    this.logger.log(
+      `[RabbitMQ] Email worker listener active on queue: "${EMAIL_QUEUE}".`,
+    );
   }
 }

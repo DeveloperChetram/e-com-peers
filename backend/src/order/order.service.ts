@@ -31,7 +31,9 @@ export class OrderService {
   // 1. Place a new order
   async placeOrder(userId: number, dto: PlaceOrderDto) {
     if (!userId) {
-      throw new UnauthorizedException('Authentication required to place an order');
+      throw new UnauthorizedException(
+        'Authentication required to place an order',
+      );
     }
 
     if (!dto.items || dto.items.length === 0) {
@@ -93,7 +95,7 @@ export class OrderService {
       products[0]?.providerId;
 
     if (!providerId) {
-    throw new BadRequestException('Provider not found');
+      throw new BadRequestException('Provider not found');
     }
 
     // Create Order and OrderItems in database
@@ -155,10 +157,13 @@ export class OrderService {
         },
       });
     }
- 
+
     // Asynchronously notify customer via RabbitMQ email queue
     this.prisma.user
-      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      })
       .then((customer) => {
         if (customer?.email) {
           const emailItems = (order.items || []).map((it) => ({
@@ -169,9 +174,12 @@ export class OrderService {
 
           const totalAmount = emailItems.reduce(
             (sum, it) => sum + it.price * it.quantity,
-            0
+            0,
           );
-          const formattedAddress = formatAddress(order.addressDetail, order.address);
+          const formattedAddress = formatAddress(
+            order.addressDetail,
+            order.address,
+          );
 
           const html = orderPlacedTemplate({
             customerName: customer.name || 'Shopper',
@@ -308,12 +316,14 @@ export class OrderService {
     }
 
     if (order.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to cancel this order');
+      throw new ForbiddenException(
+        'You do not have permission to cancel this order',
+      );
     }
 
     if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException(
-        `Cannot cancel order with status "${order.status}". Only pending orders can be cancelled.`
+        `Cannot cancel order with status "${order.status}". Only pending orders can be cancelled.`,
       );
     }
 
@@ -330,10 +340,13 @@ export class OrderService {
         address: true,
       },
     });
- 
+
     // Asynchronously notify customer via RabbitMQ email queue
     this.prisma.user
-      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      })
       .then((customer) => {
         if (customer?.email) {
           const html = orderCancelledTemplate({
@@ -361,7 +374,7 @@ export class OrderService {
     userId: number,
     orderId: string,
     type: 'CANCEL' | 'RETURN',
-    reason?: string
+    reason?: string,
   ) {
     if (!userId) throw new UnauthorizedException('Authentication required');
 
@@ -374,7 +387,9 @@ export class OrderService {
     }
 
     const nextStatus =
-      type === 'CANCEL' ? OrderStatus.CANCEL_REQUESTED : OrderStatus.RETURN_REQUESTED;
+      type === 'CANCEL'
+        ? OrderStatus.CANCEL_REQUESTED
+        : OrderStatus.RETURN_REQUESTED;
 
     const updated = await this.prisma.order.update({
       where: { id: orderId },
@@ -392,7 +407,10 @@ export class OrderService {
 
     // Notify customer that request was received
     this.prisma.user
-      .findUnique({ where: { id: userId }, select: { name: true, email: true } })
+      .findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      })
       .then((customer) => {
         if (customer?.email) {
           const html = returnOrCancelRequestedTemplate({
@@ -452,7 +470,6 @@ export class OrderService {
       shipments: order.shipment || [],
     };
   }
-
 
   // 1. Get all orders for a specific provider
   async getProviderOrders(providerId: string, query: any = {}) {
@@ -531,7 +548,9 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new NotFoundException('Order not found or does not belong to your store');
+      throw new NotFoundException(
+        'Order not found or does not belong to your store',
+      );
     }
 
     return order;
@@ -541,7 +560,7 @@ export class OrderService {
   async updateProviderOrderStatus(
     providerId: string,
     orderId: string,
-    status: OrderStatus
+    status: OrderStatus,
   ) {
     if (!providerId) {
       throw new UnauthorizedException('Provider identification required');
@@ -552,7 +571,9 @@ export class OrderService {
     });
 
     if (!existingOrder) {
-      throw new NotFoundException('Order not found or does not belong to your store');
+      throw new NotFoundException(
+        'Order not found or does not belong to your store',
+      );
     }
 
     const updated = await this.prisma.order.update({
@@ -586,11 +607,13 @@ export class OrderService {
         trackingNumber: shipment?.trackingNumber,
         carrier: shipment?.carrier,
       });
-      this.rabbitMQService.sendEmail({
-        to: updated.user.email,
-        subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
-        html,
-      }).catch(() => {});
+      this.rabbitMQService
+        .sendEmail({
+          to: updated.user.email,
+          subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
+          html,
+        })
+        .catch(() => {});
     }
 
     return {
@@ -599,9 +622,9 @@ export class OrderService {
     };
   }
 
-// admin routes
+  // admin routes
   // 1. Get all orders across platform
-  
+
   async getAdminOrders(query: any = {}) {
     const page = Math.max(1, Number(query?.page) || 1);
     const limit = Math.max(1, Number(query?.limit) || 20);
@@ -626,7 +649,11 @@ export class OrderService {
         { id: { contains: query.search, mode: 'insensitive' } },
         { user: { name: { contains: query.search, mode: 'insensitive' } } },
         { user: { email: { contains: query.search, mode: 'insensitive' } } },
-        { provider: { businessName: { contains: query.search, mode: 'insensitive' } } },
+        {
+          provider: {
+            businessName: { contains: query.search, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
@@ -731,11 +758,13 @@ export class OrderService {
         trackingNumber: shipment?.trackingNumber,
         carrier: shipment?.carrier,
       });
-      this.rabbitMQService.sendEmail({
-        to: updated.user.email,
-        subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
-        html,
-      }).catch(() => {});
+      this.rabbitMQService
+        .sendEmail({
+          to: updated.user.email,
+          subject: `Order #${orderId.slice(-6).toUpperCase()} Status: ${status} - SHOP.CO`,
+          html,
+        })
+        .catch(() => {});
     }
 
     return updated;

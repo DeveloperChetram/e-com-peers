@@ -55,7 +55,9 @@ export class ProductsController {
   ) {
     const user = (req as any).user;
     if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot create products. Only the store provider can perform this action.');
+      throw new ForbiddenException(
+        'Provider staff cannot create products. Only the store provider can perform this action.',
+      );
     }
     return this.productsService.createProduct(dto, user, file);
   }
@@ -104,7 +106,9 @@ export class ProductsController {
   ) {
     const user = (req as any).user;
     if (user?.role === 'PROVIDER_STAFF' || user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot modify product publication status.');
+      throw new ForbiddenException(
+        'Provider staff cannot modify product publication status.',
+      );
     }
     return this.productsService.togglePublish(id, user, isPublished);
   }

@@ -11,7 +11,10 @@ const PROVIDER_ROLES = ['PROVIDER', 'PROVIDER_STAFF', 'ADMIN'];
 
 @Injectable()
 export class ProviderMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService, private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     let token = req.cookies?.['accessToken'];
@@ -39,7 +42,9 @@ export class ProviderMiddleware implements NestMiddleware {
       });
 
       if (!user) {
-        throw new UnauthorizedException('Invalid or expired token user not found');
+        throw new UnauthorizedException(
+          'Invalid or expired token user not found',
+        );
       }
 
       let provider = await this.prisma.provider.findUnique({
@@ -60,7 +65,7 @@ export class ProviderMiddleware implements NestMiddleware {
       if (!provider) {
         throw new ForbiddenException('Access denied: Provider store not found');
       }
-      
+
       (req as any).user = {
         ...user,
         provider: { ...provider },

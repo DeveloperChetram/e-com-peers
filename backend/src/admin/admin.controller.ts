@@ -40,7 +40,6 @@ export class AdminController {
     return this.adminService.getStats();
   }
 
-
   @Get('users')
   getUsers(@Query() query: any) {
     return this.adminService.getUsers(query);
@@ -51,7 +50,6 @@ export class AdminController {
     return this.adminService.getUser(Number(id));
   }
 
-
   @Patch('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,
@@ -61,10 +59,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
-  updateUserRole(
-    @Param('id') id: string,
-    @Body('role') role: UserRole,
-  ) {
+  updateUserRole(@Param('id') id: string, @Body('role') role: UserRole) {
     return this.adminService.updateUserRole(Number(id), role);
   }
 
@@ -75,7 +70,7 @@ export class AdminController {
 
   // providers
 
-@Get('providers')
+  @Get('providers')
   getProviders(@Query() query: any) {
     return this.adminService.getProviders(query);
   }
@@ -108,7 +103,6 @@ export class AdminController {
   }
 
   // products
-
 
   @Get('products')
   getProducts(@Query() query: any) {

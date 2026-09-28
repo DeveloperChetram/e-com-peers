@@ -4,23 +4,22 @@ import { createCategoryDto } from './dto/create-category.dto';
 
 @Injectable()
 export class CategoriesService {
-    constructor(private readonly prisma:PrismaService){}
+  constructor(private readonly prisma: PrismaService) {}
 
-    async createCategory(dto:createCategoryDto){
-        return this.prisma.category.create({
-            data:{
-                name:dto.name,
-                slug:dto.slug
-            }
-        })
-    }
+  async createCategory(dto: createCategoryDto) {
+    return this.prisma.category.create({
+      data: {
+        name: dto.name,
+        slug: dto.slug,
+      },
+    });
+  }
 
+  async getCatrgories() {
+    return await this.prisma.category.findMany();
+  }
 
-    async getCatrgories(){
-        return await this.prisma.category.findMany()
-    }
-
-    async getCategories(){
-        return await this.prisma.category.findMany()
-    }
+  async getCategories() {
+    return await this.prisma.category.findMany();
+  }
 }

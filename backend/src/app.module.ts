@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,6 +21,7 @@ import { OrderModule } from './order/order.module';
 import { ProviderModule } from './provider/provider.module';
 import { MailModule } from './mail/mail.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import { RedisModule } from './redis/redis.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -29,6 +35,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     UserModule,
     ProductsModule,
     PrismaModule,
+    RedisModule,
     CategoriesModule,
     AdminModule,
     OrderModule,

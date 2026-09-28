@@ -4,17 +4,15 @@ import { CategoriesService } from './categories.service';
 
 @Controller('categories')
 export class CategoriesController {
+  constructor(private readonly categoriesService: CategoriesService) {}
 
-    constructor(private readonly  categoriesService: CategoriesService){}
+  @Post()
+  createCategory(@Body() dto: createCategoryDto) {
+    return this.categoriesService.createCategory(dto);
+  }
 
-    @Post()
-    createCategory(@Body() dto:createCategoryDto){
-        return this.categoriesService.createCategory(dto)
-    }
-
-    @Get()
-    getCategories(){
-        return this.categoriesService.getCatrgories()
-    }
-
+  @Get()
+  getCategories() {
+    return this.categoriesService.getCatrgories();
+  }
 }

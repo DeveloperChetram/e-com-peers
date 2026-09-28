@@ -25,7 +25,7 @@ export class UserController {
   @Post('register')
   async register(
     @Body() dto: RegisterUserDto,
-    @Res({ passthrough: true }) response: Response
+    @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.userService.register(dto);
     if (result.accessToken) {
@@ -42,7 +42,7 @@ export class UserController {
   @Post('/register/provider')
   async registerProvider(
     @Body() dto: RegisterProviderDto,
-    @Res({ passthrough: true }) response: Response
+    @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.userService.registerProvider(dto);
     if (result.accessToken) {
@@ -59,7 +59,7 @@ export class UserController {
   @Post('login')
   async login(
     @Body() dto: LoginUserDto,
-    @Res({ passthrough: true }) response: Response
+    @Res({ passthrough: true }) response: Response,
   ) {
     const result: any = await this.userService.login(dto);
     if (result?.accessToken) {
@@ -102,7 +102,11 @@ export class UserController {
   @Patch('cart/item')
   async updateCartItem(@Req() req: any, @Body() dto: UpdateCartItemDto) {
     const userId = req.user?.id;
-    return this.userService.updateCartItem(userId, dto?.productId, dto?.quantity);
+    return this.userService.updateCartItem(
+      userId,
+      dto?.productId,
+      dto?.quantity,
+    );
   }
 
   // ─── Favorites / Wishlist Routes ──────────────────────────────────────────
@@ -114,10 +118,7 @@ export class UserController {
   }
 
   @Post('favorites/:productId')
-  async toggleFavorite(
-    @Req() req: any,
-    @Param('productId') productId: string
-  ) {
+  async toggleFavorite(@Req() req: any, @Param('productId') productId: string) {
     const userId = req.user?.id;
     return this.userService.toggleFavorite(userId, productId);
   }
@@ -140,7 +141,7 @@ export class UserController {
   async updateAddress(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() dto: UpdateAddressDto
+    @Body() dto: UpdateAddressDto,
   ) {
     const userId = req.user?.id;
     return this.userService.updateAddress(userId, id, dto);

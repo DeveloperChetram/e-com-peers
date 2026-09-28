@@ -8,4 +8,3 @@ export class CreateProductDto {
   slug?: string;
   isPublished?: boolean | string;
 }
-

@@ -1,5 +1,4 @@
-
-export class createCategoryDto{
-    name : string;
-    slug: string;
+export class createCategoryDto {
+  name: string;
+  slug: string;
 }

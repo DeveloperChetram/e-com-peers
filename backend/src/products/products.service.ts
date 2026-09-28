@@ -8,10 +8,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   private async getProviderId(user: any): Promise<string> {
     if (user?.provider?.id) return user.provider.id;
@@ -34,12 +38,11 @@ export class ProductsService {
 
     const imageUrl = file
       ? `/uploads/products/${file.filename}`
-      : (dto.imageUrl || '');
+      : dto.imageUrl || '';
 
-    const isPublished =
-      dto.isPublished === true || dto.isPublished === 'true';
+    const isPublished = dto.isPublished === true || dto.isPublished === 'true';
 
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         name: dto.name,
         description: dto.description,
@@ -60,6 +63,12 @@ export class ProductsService {
         provider: true,
       },
     });
+
+    try {
+      await this.redis.del('products:all');
+    } catch {}
+
+    return product;
   }
 
   async getMyProducts(
@@ -161,8 +170,7 @@ export class ProductsService {
       data.category = { connect: { id: dto.categoryId } };
     }
     if (dto.isPublished !== undefined) {
-      data.isPublished =
-        dto.isPublished === true || dto.isPublished === 'true';
+      data.isPublished = dto.isPublished === true || dto.isPublished === 'true';
     }
     if (file) {
       data.imageUrl = `/uploads/products/${file.filename}`;
@@ -243,8 +251,18 @@ export class ProductsService {
   }
 
   async getProducts() {
-    return this.prisma.product.findMany({
-      where:{
+    const cacheKey = 'products:all';
+    try {
+      const cached = await this.redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Redis fallback to database
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: {
         isApproved: true,
         isPublished: true,
       },
@@ -253,6 +271,14 @@ export class ProductsService {
         provider: true,
       },
     });
+
+    try {
+      await this.redis.set(cacheKey, JSON.stringify(products), 'EX', 300);
+    } catch {
+      // Fail silently on cache write failure
+    }
+
+    return products;
   }
 
   async getProductById(id: string) {
@@ -281,46 +307,45 @@ export class ProductsService {
     const limit = Number(dto.limit) || 10;
     const skip = (page - 1) * limit;
 
-   const where: any = {
-  // Only approved products
-  isApproved: true,
+    const where: any = {
+      // Only approved products
+      isApproved: true,
 
-  // Only published products
-  isPublished: true,
+      // Only published products
+      isPublished: true,
 
-  ...(dto.name && {
-    name: {
-      contains: dto.name,
-      mode: 'insensitive' as const,
-    },
-  }),
-
-  ...(dto.categoryId && {
-    categoryId: dto.categoryId,
-  }),
-
-  ...(dto.providerId && {
-    providerId: dto.providerId,
-  }),
-
-  ...((dto.minPrice !== undefined || dto.maxPrice !== undefined) && {
-    price: {
-      ...(dto.minPrice !== undefined && {
-        gte: Number(dto.minPrice),
+      ...(dto.name && {
+        name: {
+          contains: dto.name,
+          mode: 'insensitive' as const,
+        },
       }),
-      ...(dto.maxPrice !== undefined && {
-        lte: Number(dto.maxPrice),
+
+      ...(dto.categoryId && {
+        categoryId: dto.categoryId,
       }),
-    },
-  }),
-};
+
+      ...(dto.providerId && {
+        providerId: dto.providerId,
+      }),
+
+      ...((dto.minPrice !== undefined || dto.maxPrice !== undefined) && {
+        price: {
+          ...(dto.minPrice !== undefined && {
+            gte: Number(dto.minPrice),
+          }),
+          ...(dto.maxPrice !== undefined && {
+            lte: Number(dto.maxPrice),
+          }),
+        },
+      }),
+    };
 
     if (!isPaginated) {
       const data = await this.prisma.product.findMany({
         where,
         include: { category: true, provider: true },
         orderBy: { price: 'asc' },
-        
       });
       return { data, meta: { total: data.length } };
     }

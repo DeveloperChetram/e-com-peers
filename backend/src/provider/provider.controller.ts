@@ -25,7 +25,9 @@ export class ProviderController {
   @Get('staff')
   async getStaff(@Req() req: any) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot manage team staff. Only the store provider can access this.');
+      throw new ForbiddenException(
+        'Provider staff cannot manage team staff. Only the store provider can access this.',
+      );
     }
     const providerId = req.user?.provider?.id;
     return this.providerService.getStaffMembers(providerId);
@@ -34,7 +36,9 @@ export class ProviderController {
   @Post('staff')
   async createStaff(@Req() req: any, @Body() dto: CreateStaffDto) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot create staff members. Only the store provider can perform this action.');
+      throw new ForbiddenException(
+        'Provider staff cannot create staff members. Only the store provider can perform this action.',
+      );
     }
     const providerId = req.user?.provider?.id;
     return this.providerService.createStaffMember(providerId, dto);
@@ -44,10 +48,12 @@ export class ProviderController {
   async updateStaff(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() dto: UpdateStaffDto
+    @Body() dto: UpdateStaffDto,
   ) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot update staff members.');
+      throw new ForbiddenException(
+        'Provider staff cannot update staff members.',
+      );
     }
     const providerId = req.user?.provider?.id;
     return this.providerService.updateStaffMember(providerId, Number(id), dto);
@@ -56,7 +62,9 @@ export class ProviderController {
   @Delete('staff/:id')
   async deleteStaff(@Req() req: any, @Param('id') id: string) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot delete staff members.');
+      throw new ForbiddenException(
+        'Provider staff cannot delete staff members.',
+      );
     }
     const providerId = req.user?.provider?.id;
     return this.providerService.deleteStaffMember(providerId, Number(id));
@@ -69,7 +77,9 @@ export class ProviderController {
   @Post('shipments/move')
   async moveToShipment(@Req() req: any, @Body() dto: CreateShipmentDto) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot move orders to shipment department. Only the store provider can perform this action.');
+      throw new ForbiddenException(
+        'Provider staff cannot move orders to shipment department. Only the store provider can perform this action.',
+      );
     }
     const providerId = req.user?.provider?.id;
     const staffUserId = req.user?.id;
@@ -96,11 +106,16 @@ export class ProviderController {
   async addShipmentLog(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() dto: AddShipmentLogDto
+    @Body() dto: AddShipmentLogDto,
   ) {
     const providerId = req.user?.provider?.id;
     const staffUserId = req.user?.id;
-    return this.providerService.addShipmentLog(providerId, staffUserId, id, dto);
+    return this.providerService.addShipmentLog(
+      providerId,
+      staffUserId,
+      id,
+      dto,
+    );
   }
 
   // ==========================================
@@ -112,17 +127,19 @@ export class ProviderController {
   async approveReturn(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() body: { approved: boolean; note?: string }
+    @Body() body: { approved: boolean; note?: string },
   ) {
     if (req.user?.role === 'PROVIDER_STAFF' || req.user?.isStaff) {
-      throw new ForbiddenException('Provider staff cannot approve or reject return/cancellation requests. Only the store provider can perform this action.');
+      throw new ForbiddenException(
+        'Provider staff cannot approve or reject return/cancellation requests. Only the store provider can perform this action.',
+      );
     }
     const providerId = req.user?.provider?.id;
     return this.providerService.approveReturnOrCancel(
       providerId,
       id,
       body.approved,
-      body.note
+      body.note,
     );
   }
 
@@ -131,7 +148,7 @@ export class ProviderController {
   async processReturn(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() body: { action: 'RETURNED' | 'REFUNDED'; note?: string }
+    @Body() body: { action: 'RETURNED' | 'REFUNDED'; note?: string },
   ) {
     const providerId = req.user?.provider?.id;
     const staffUserId = req.user?.id;
@@ -140,7 +157,7 @@ export class ProviderController {
       staffUserId,
       id,
       body.action,
-      body.note
+      body.note,
     );
   }
 }

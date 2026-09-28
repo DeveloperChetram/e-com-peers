@@ -30,14 +30,12 @@ export class OrderController {
     return this.orderService.getProviderOrders(providerId, query);
   }
 
- 
   @Get('provider/:id')
   async getProviderOrder(@Req() req: any, @Param('id') id: string) {
     const providerId = req.user?.provider?.id;
     return this.orderService.getProviderOrder(providerId, id);
   }
 
-  
   @Patch('provider/:id/status')
   async updateProviderOrderStatus(
     @Req() req: any,
@@ -50,7 +48,11 @@ export class OrderController {
       );
     }
     const providerId = req.user?.provider?.id;
-    return this.orderService.updateProviderOrderStatus(providerId, id, dto.status);
+    return this.orderService.updateProviderOrderStatus(
+      providerId,
+      id,
+      dto.status,
+    );
   }
 
   @Get('admin/all')
@@ -121,10 +123,15 @@ export class OrderController {
   async requestCancel(
     @Req() req: any,
     @Param('id') id: string,
-    @Body('reason') reason?: string
+    @Body('reason') reason?: string,
   ) {
     const userId = req.user?.id;
-    return this.orderService.requestReturnOrCancel(userId, id, 'CANCEL', reason);
+    return this.orderService.requestReturnOrCancel(
+      userId,
+      id,
+      'CANCEL',
+      reason,
+    );
   }
 
   // POST /orders/:id/request-return - Customer requests return with reason
@@ -132,10 +139,15 @@ export class OrderController {
   async requestReturn(
     @Req() req: any,
     @Param('id') id: string,
-    @Body('reason') reason?: string
+    @Body('reason') reason?: string,
   ) {
     const userId = req.user?.id;
-    return this.orderService.requestReturnOrCancel(userId, id, 'RETURN', reason);
+    return this.orderService.requestReturnOrCancel(
+      userId,
+      id,
+      'RETURN',
+      reason,
+    );
   }
 
   // GET /orders/:id/tracking - Customer views shipment tracking timeline

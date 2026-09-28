@@ -362,11 +362,13 @@ export class AdminService {
     }
 
     if (query?.isApproved !== undefined) {
-      where.isApproved = query.isApproved === 'true' || query.isApproved === true;
+      where.isApproved =
+        query.isApproved === 'true' || query.isApproved === true;
     }
 
     if (query?.isPublished !== undefined) {
-      where.isPublished = query.isPublished === 'true' || query.isPublished === true;
+      where.isPublished =
+        query.isPublished === 'true' || query.isPublished === true;
     }
 
     if (query?.categoryId) {
@@ -483,11 +485,13 @@ export class AdminService {
     }
 
     if (query?.isApproved !== undefined) {
-      where.isApproved = query.isApproved === 'true' || query.isApproved === true;
+      where.isApproved =
+        query.isApproved === 'true' || query.isApproved === true;
     }
 
     if (query?.isPublished !== undefined) {
-      where.isPublished = query.isPublished === 'true' || query.isPublished === true;
+      where.isPublished =
+        query.isPublished === 'true' || query.isPublished === true;
     }
 
     const products = await this.prisma.product.findMany({
@@ -516,7 +520,12 @@ export class AdminService {
       throw new BadRequestException('Category name is required');
     }
 
-    const generatedSlug = dto.slug?.trim() || dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const generatedSlug =
+      dto.slug?.trim() ||
+      dto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
 
     return this.prisma.category.create({
       data: {
@@ -570,7 +579,7 @@ export class AdminService {
 
     if (productsCount > 0) {
       throw new BadRequestException(
-        `Cannot delete category "${category.name}" because it contains ${productsCount} product(s). Please reassign or delete the products first.`
+        `Cannot delete category "${category.name}" because it contains ${productsCount} product(s). Please reassign or delete the products first.`,
       );
     }
 
