@@ -15,7 +15,7 @@ export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-  ) {}
+  ) { }
 
   private async getProviderId(user: any): Promise<string> {
     if (user?.provider?.id) return user.provider.id;
@@ -262,7 +262,7 @@ export class ProductsService {
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
-    } catch {}
+    } catch { }
   }
 
   async getProducts(params?: {
@@ -287,21 +287,21 @@ export class ProductsService {
         : {}),
       ...(params?.search?.trim()
         ? {
-            OR: [
-              {
-                name: {
-                  contains: params.search.trim(),
-                  mode: 'insensitive' as const,
-                },
+          OR: [
+            {
+              name: {
+                contains: params.search.trim(),
+                mode: 'insensitive' as const,
               },
-              {
-                description: {
-                  contains: params.search.trim(),
-                  mode: 'insensitive' as const,
-                },
+            },
+            {
+              description: {
+                contains: params.search.trim(),
+                mode: 'insensitive' as const,
               },
-            ],
-          }
+            },
+          ],
+        }
         : {}),
     };
 
