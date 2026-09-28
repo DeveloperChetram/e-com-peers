@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useAppDispatch } from '@/redux/hooks';
-import { setUserAndToken } from '@/redux/slices/auth.slice';
+import { setUserAndToken, setInitialized, logout } from '@/redux/slices/auth.slice';
 import { setCart, CartItem } from '@/redux/slices/cart.slice';
-import { getUserProfile } from '@/apis/auth.api';
+import { getUserProfile, logoutUser } from '@/apis/auth.api';
 import { getCart } from '@/apis/cart.api';
 import { getFavorites } from '@/apis/favorites.api';
 import { setFavorites, FavoriteItem } from '@/redux/slices/user.slice';
@@ -62,9 +62,15 @@ export function AppInitializer() {
           } catch {
             // Silently handle favorites fetch error
           }
+        } else {
+          dispatch(logout());
         }
       } catch {
-        // User is not authenticated — keep guest state
+        // Clear stale invalid auth cookie if profile fetch fails (e.g. 401, DB reset)
+        await logoutUser().catch(() => {});
+        dispatch(logout());
+      } finally {
+        dispatch(setInitialized(true));
       }
     };
 

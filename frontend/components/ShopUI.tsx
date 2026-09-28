@@ -5,6 +5,7 @@ import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { SearchBar } from './ui/SearchBar';
 import Link from 'next/link';
+import AuthHeaderButton from './ui/AuthHeaderButton';
 import DashboardButton from './ui/DashboardButton';
 
 import { useAppSelector } from '@/redux/hooks';
@@ -46,9 +47,7 @@ const ShopUI = () => {
               </span>
             )}
           </Link>
-          <Link href="/login" aria-label="User Profile / Sign In" className="hover:text-gray-600 transition-colors">
-            <User size={24} />
-          </Link>
+          <AuthHeaderButton size={22} />
         </div>
       <DashboardButton/>
       </header>

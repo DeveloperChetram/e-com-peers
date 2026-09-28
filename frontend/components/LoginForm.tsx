@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+
 import {
   Mail,
   Lock,
@@ -17,8 +19,8 @@ import {
   ShieldCheck,
   User,
 } from 'lucide-react';
-import { loginUser } from '@/apis/auth.api';
-import { useAppDispatch } from '@/redux/hooks';
+import { googleAuth, loginUser } from '@/apis/auth.api';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
 
 interface LoginFormProps {
@@ -37,6 +39,14 @@ export function LoginForm({ initialRole }: LoginFormProps) {
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role') || initialRole;
   const isProviderMode = roleParam === 'provider';
+
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(isProviderMode ? '/dashboard/provider' : '/dashboard/user');
+    }
+  }, [isAuthenticated, isProviderMode, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,13 +81,38 @@ export function LoginForm({ initialRole }: LoginFormProps) {
 
       const targetPath = res?.redirectTo || (isProviderMode ? '/dashboard/provider' : '/dashboard/user');
       setTimeout(() => {
-        router.push(targetPath);
+        router.replace(targetPath);
       }, 600);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in. Please verify your credentials.';
       setErrorMessage(message);
     }
   };
+
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error('No credential received from Google');
+      }
+      const res = await googleAuth(credentialResponse.credential);
+      dispatch(
+        setUserAndToken({
+          user: res.user,
+          token: res.accessToken,
+          role: res.user?.role || 'USER',
+        })
+      );
+      setSuccessMessage('Signed in with Google! Redirecting...');
+      setTimeout(() => {
+        router.replace('/dashboard/user');
+      }, 500);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Google sign-in failed';
+      setErrorMessage(message);
+    }
+  };
+
 
   return (
     <div className="w-full">
@@ -244,6 +279,27 @@ export function LoginForm({ initialRole }: LoginFormProps) {
             </>
           )}
         </button>
+
+        {/* Divider */}
+        <div className="relative my-3">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">Or continue with</span>
+          </div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <div className="flex justify-center w-full">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setErrorMessage('Google Sign-In failed')}
+            useOneTap
+            shape="pill"
+            width="100%"
+          />
+        </div>
       </form>
 
       {/* PROVIDER CALLOUT / CONTINUE AS PROVIDER LINK */}

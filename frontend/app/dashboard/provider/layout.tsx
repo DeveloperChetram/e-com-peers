@@ -2,17 +2,44 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
-import { ShieldAlert, Store } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { logout } from '@/redux/slices/auth.slice';
+import { logoutUser } from '@/apis/auth.api';
+import { ShieldAlert, Store, Loader2 } from 'lucide-react';
 import ProviderSidebar from './components/ProviderSidebar';
 import ProviderHeader from './components/ProviderHeader';
-import { RootState } from '@/redux/store';
 
 export default function ProviderLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, isAuthenticated, role } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, role, isInitialized } = useAppSelector(
+    (state) => state.auth
+  );
 
   const activeRole = (user as any)?.role || role;
+
+  const handleSignInRedirect = async () => {
+    try {
+      await logoutUser().catch(() => {});
+    } finally {
+      dispatch(logout());
+      router.push('/login?role=provider');
+    }
+  };
+
+  // Wait for initial auth check before showing guard
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0F1117] flex items-center justify-center p-4">
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <Loader2 className="w-5 h-5 animate-spin text-black dark:text-white" />
+          <span>Verifying provider session...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Guard: not logged in
   if (!isAuthenticated || !user) {
@@ -33,12 +60,12 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
             >
               Return Home
             </Link>
-            <Link
-              href="/login?role=provider"
+            <button
+              onClick={handleSignInRedirect}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
               Provider Sign In
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -58,9 +85,9 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
           <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 mx-auto flex items-center justify-center">
             <ShieldAlert size={32} />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Provider Access Required</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Provider Access Only</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Your current account does not have provider privileges to access the seller portal.
+            Your account ({activeRole}) does not have seller permissions.
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <Link
@@ -69,12 +96,12 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
             >
               Return Home
             </Link>
-            <Link
-              href="/login?role=provider"
+            <button
+              onClick={handleSignInRedirect}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
-              Sign In as Provider
-            </Link>
+              Switch Account
+            </button>
           </div>
         </div>
       </div>

@@ -5,24 +5,22 @@ import Link from 'next/link';
 import {
   Search,
   ShoppingCart,
-  User,
-  SlidersHorizontal,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Sparkles,
-  ArrowUpDown,
   X,
   RotateCcw,
   Truck,
   ShieldCheck,
   RefreshCw,
   Award,
-  Grid3X3,
-  LayoutGrid,
 } from 'lucide-react';
 import ProductCard, { Product } from '@/components/ui/ProductCard';
 import { getAllProducts, getCategories, CategoryItem } from '@/apis/products.api';
 import { ThemeToggle } from '@/components/ThemeProvider';
 import DashboardButton from '@/components/ui/DashboardButton';
+import AuthHeaderButton from '@/components/ui/AuthHeaderButton';
 import { useCart } from '@/hooks/useCart';
 
 export default function ProductsPage() {
@@ -36,6 +34,10 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [maxPrice, setMaxPrice] = useState<number>(1000);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(8);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +64,13 @@ export default function ProductsPage() {
     setSelectedCategory('ALL');
     setSortBy('featured');
     setMaxPrice(1000);
+    setCurrentPage(1);
   };
+
+  // Reset to page 1 whenever search, category, or itemsPerPage changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, sortBy, maxPrice, itemsPerPage]);
 
   // Filter & Sort Computation
   const filteredProducts = useMemo(() => {
@@ -89,9 +97,44 @@ export default function ProductsPage() {
       );
     }
 
- 
     return result;
   }, [products, searchQuery, selectedCategory, maxPrice, sortBy]);
+
+  // Pagination Computation
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProducts, startIndex, itemsPerPage]);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      const gridElem = document.getElementById('catalog-grid');
+      if (gridElem) {
+        gridElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  // Helper for generating page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, 4, '...', totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+      }
+    }
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#0B0D13] text-gray-900 dark:text-gray-100 transition-colors duration-200">
@@ -147,7 +190,7 @@ export default function ProductsPage() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer"
               >
                 <X size={14} />
               </button>
@@ -173,14 +216,8 @@ export default function ProductsPage() {
               )}
             </Link>
 
-            {/* User Profile */}
-            <Link
-              href="/login"
-              aria-label="User Profile"
-              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors"
-            >
-              <User size={20} />
-            </Link>
+            {/* User Auth (Login / Logout) */}
+            <AuthHeaderButton size={20} />
 
             {/* Dashboard Button */}
             <DashboardButton />
@@ -245,7 +282,7 @@ export default function ProductsPage() {
       {/* ========================================================= */}
       {/* 3. FILTER & TOOLBAR SECTION                                */}
       {/* ========================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" id="catalog-grid">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
           {/* Categories Pill Bar */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
@@ -275,43 +312,28 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          {/* Sort & Mobile Filter Toggle */}
-          <div className="flex items-center gap-2 justify-between lg:justify-end">
-{/*            
+          {/* Controls Right */}
+          <div className="flex items-center gap-3 justify-between lg:justify-end">
+            {/* Items per page selector */}
             <div className="flex items-center gap-2 text-xs font-semibold">
-              <span className="text-gray-400 hidden sm:inline">Sort:</span>
+              <span className="text-gray-400">Show:</span>
               <div className="relative">
                 <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-full pl-3.5 pr-8 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-hidden cursor-pointer shadow-2xs"
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="appearance-none bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 rounded-full pl-3 pr-7 py-1.5 text-xs font-bold text-gray-900 dark:text-white focus:outline-hidden cursor-pointer shadow-2xs"
                 >
-                  <option value="featured">Featured First</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="name-asc">Name: A to Z</option>
+                  <option value={4}>4</option>
+                  <option value={8}>8</option>
+                  <option value={12}>12</option>
+                  <option value={24}>24</option>
                 </select>
                 <ChevronDown
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+                  size={12}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
                 />
               </div>
-            </div> */}
-
-            {/* Price Filter Pill */}
-            {/* <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#161922] border border-gray-200 dark:border-gray-800 text-xs font-semibold shadow-2xs">
-              <span className="text-gray-400">Max:</span>
-              <span className="font-bold">${maxPrice}</span>
-              <input
-                type="range"
-                min="20"
-                max="1000"
-                step="20"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-20 accent-black dark:accent-white cursor-pointer"
-              />
-            </div> */}
+            </div>
 
             {/* Reset Filters button if modified */}
             {(selectedCategory !== 'ALL' || searchQuery || sortBy !== 'featured' || maxPrice < 1000) && (
@@ -329,7 +351,7 @@ export default function ProductsPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* 4. PRODUCT GRID DISPLAY                                    */}
+      {/* 4. PRODUCT GRID DISPLAY & PAGINATION                       */}
       {/* ========================================================= */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[500px]">
         {loading ? (
@@ -360,7 +382,7 @@ export default function ProductsPage() {
               No matching products found
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              We couldn't find any products matching your active filters. Try adjusting your search keyword, category, or price range.
+              We couldn't find any products matching your active filters. Try adjusting your search keyword or category.
             </p>
             <div className="pt-2">
               <button
@@ -373,13 +395,84 @@ export default function ProductsPage() {
           </div>
         ) : (
           /* Active Product Cards Grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
-            ))}
+          <div className="space-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                />
+              ))}
+            </div>
+
+            {/* ===================================================== */}
+            {/* PAGINATION CONTROLS BAR                                */}
+            {/* ===================================================== */}
+            {totalPages > 1 && (
+              <div className="pt-8 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Result count information */}
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  Showing <span className="font-bold text-gray-900 dark:text-white">{startIndex + 1}</span> to{' '}
+                  <span className="font-bold text-gray-900 dark:text-white">{endIndex}</span> of{' '}
+                  <span className="font-bold text-gray-900 dark:text-white">{filteredProducts.length}</span> products
+                </div>
+
+                {/* Page navigation buttons */}
+                <div className="flex items-center gap-1.5">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-full border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft size={14} />
+                    <span className="hidden sm:inline">Previous</span>
+                  </button>
+
+                  {/* Numbered Page Buttons */}
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((page, idx) => {
+                      if (typeof page === 'string') {
+                        return (
+                          <span
+                            key={`ellipsis-${idx}`}
+                            className="px-2 py-1 text-xs text-gray-400"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      const isCurrent = page === currentPage;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`w-8 h-8 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                            isCurrent
+                              ? 'bg-black text-white dark:bg-white dark:text-black shadow-xs'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-full border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+                    aria-label="Next Page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

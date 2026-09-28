@@ -2,17 +2,41 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
-import { ShieldAlert } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { logout } from '@/redux/slices/auth.slice';
+import { logoutUser } from '@/apis/auth.api';
+import { ShieldAlert, Loader2 } from 'lucide-react';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
-import { RootState } from '@/redux/store';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, role } = useSelector((state: RootState) => state.auth);
+  const { user, role, isInitialized } = useAppSelector((state) => state.auth);
 
   const activeRole = (user as any)?.role || role;
+
+  const handleSignInRedirect = async () => {
+    try {
+      await logoutUser().catch(() => {});
+    } finally {
+      dispatch(logout());
+      router.push('/login');
+    }
+  };
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0F1117] flex items-center justify-center p-4">
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <Loader2 className="w-5 h-5 animate-spin text-black dark:text-white" />
+          <span>Verifying admin session...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Guard: if user info is loaded and role is not ADMIN
   if (user && activeRole && activeRole !== 'ADMIN') {
@@ -33,12 +57,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               Return Home
             </Link>
-            <Link
-              href="/login"
+            <button
+              onClick={handleSignInRedirect}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
               Sign In as Admin
-            </Link>
+            </button>
           </div>
         </div>
       </div>

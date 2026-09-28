@@ -39,6 +39,23 @@ export class UserController {
     return result;
   }
 
+  @Post('google')
+async googleAuth(
+  @Body('idToken') idToken: string,
+  @Res({ passthrough: true }) response: Response,
+) {
+  const result = await this.userService.googleLogin(idToken);
+  if (result.accessToken) {
+    response.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
+  return result;
+}
+
   @Post('/register/provider')
   async registerProvider(
     @Body() dto: RegisterProviderDto,
@@ -71,6 +88,16 @@ export class UserController {
       });
     }
     return result;
+  }
+
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+    return { success: true, message: 'Logged out successfully' };
   }
 
   @Get('profile')

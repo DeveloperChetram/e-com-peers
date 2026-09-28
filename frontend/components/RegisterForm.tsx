@@ -20,9 +20,11 @@ import {
   FileText,
   Sparkles,
 } from 'lucide-react';
-import { registerUser, registerProvider, RegisterProviderData } from '@/apis/auth.api';
+import { registerUser, registerProvider, RegisterProviderData, googleAuth } from '@/apis/auth.api';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
 import { useDispatch } from 'react-redux';
+import { useAppSelector } from '@/redux/hooks';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 interface RegisterFormProps {
   initialRole?: string;
@@ -42,6 +44,14 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
 
   const roleParam = searchParams.get('role') || initialRole;
   const isProviderMode = roleParam === 'provider';
+
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(isProviderMode ? '/dashboard/provider' : '/dashboard/user');
+    }
+  }, [isAuthenticated, isProviderMode, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -86,7 +96,7 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         );
         setServerSuccess(res?.message || 'Account created! Redirecting to dashboard...');
         setTimeout(() => {
-          router.push('/dashboard/user');
+          router.replace('/dashboard/user');
         }, 800);
         return;
       }
@@ -107,13 +117,35 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         })
       );
 
-
       setTimeout(() => {
-        router.push('/dashboard/provider');
+        router.replace('/dashboard/provider');
       }, 800);
       
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setServerError(message);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error('No credential received from Google');
+      }
+      const res = await googleAuth(credentialResponse.credential);
+      dispatch(
+        setUserAndToken({
+          user: res.user,
+          token: res.accessToken,
+          role: res.user?.role || 'USER',
+        })
+      );
+      setServerSuccess('Signed in with Google! Redirecting...');
+      setTimeout(() => {
+        router.replace('/dashboard/user');
+      }, 500);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Google sign-in failed';
       setServerError(message);
     }
   };
@@ -488,6 +520,30 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
             </>
           )}
         </button>
+
+        {/* Google OAuth on Register Form for Customer */}
+        {!isProviderMode && (
+          <>
+            <div className="relative my-3">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setServerError('Google Sign-Up failed')}
+                useOneTap
+                shape="pill"
+                width="100%"
+              />
+            </div>
+          </>
+        )}
       </form>
 
       {/* Switch to Login */}

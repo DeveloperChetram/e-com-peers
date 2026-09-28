@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/slices/auth.slice';
+import { logoutUser } from '@/apis/auth.api';
 
 interface UserSidebarProps {
   isOpen: boolean;
@@ -67,7 +68,8 @@ export default function UserSidebar({ isOpen, onClose }: UserSidebarProps) {
     .toUpperCase()
     .slice(0, 2) || 'US';
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutUser();
     dispatch(logout());
     router.push('/login');
   };

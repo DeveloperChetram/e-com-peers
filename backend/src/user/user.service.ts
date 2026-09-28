@@ -11,6 +11,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterProviderDto } from './dto/register-provider.dto';
+import { OAuth2Client } from 'google-auth-library';
+
+
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
 
 @Injectable()
 export class UserService {
@@ -144,6 +151,12 @@ export class UserService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'This account was created using Google. Please sign in with Google.',
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
@@ -214,6 +227,49 @@ export class UserService {
       user: userWithoutPassword,
     };
   }
+
+  async googleLogin(idToken: string) {
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new BadRequestException('Invalid or expired Google token');
+    }
+
+    if (!payload || !payload.email) {
+      throw new BadRequestException('Invalid Google token');
+    }
+    const { email, name, sub: googleId } = payload;
+  // Find or create user
+  let user = await this.prisma.user.findFirst({
+    where: { OR: [{ googleId }, { email }] },
+  });
+  if (!user) {
+    user = await this.prisma.user.create({
+      data: {
+        email,
+        name: name || email.split('@')[0],
+        googleId,
+        role: 'USER',
+      },
+    });
+  } else if (!user.googleId) {
+    // Link Google ID if user previously registered with email/password
+    user = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { googleId },
+    });
+  }
+  const jwtPayload = { id: user.id, email: user.email, role: user.role };
+  const accessToken = this.jwtService.sign(jwtPayload);
+  const { password, ...userWithoutPassword } = user;
+  return { user: userWithoutPassword, accessToken };
+}
+
 
   async getProfile(userId: number) {
     if (!userId) {

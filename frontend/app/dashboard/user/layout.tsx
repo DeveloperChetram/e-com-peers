@@ -2,21 +2,48 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
-import { UserCheck, ShieldAlert } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { logout } from '@/redux/slices/auth.slice';
+import { logoutUser } from '@/apis/auth.api';
+import { UserCheck, ShieldAlert, Loader2 } from 'lucide-react';
 import UserSidebar from './components/UserSidebar';
 import UserHeader from './components/UserHeader';
-import { RootState } from '@/redux/store';
 
 export default function UserDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, isAuthenticated, role } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, role, isInitialized } = useAppSelector(
+    (state) => state.auth
+  );
 
   const activeRole = (user as any)?.role || role;
+
+  const handleSignInRedirect = async () => {
+    try {
+      await logoutUser().catch(() => {});
+    } finally {
+      dispatch(logout());
+      router.push('/login');
+    }
+  };
+
+  // Wait for initial auth check from cookies before showing guard
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0F1117] flex items-center justify-center p-4">
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <Loader2 className="w-5 h-5 animate-spin text-black dark:text-white" />
+          <span>Verifying session...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Guard: not logged in
   if (!isAuthenticated || !user) {
@@ -37,12 +64,12 @@ export default function UserDashboardLayout({
             >
               Return Home
             </Link>
-            <Link
-              href="/login"
+            <button
+              onClick={handleSignInRedirect}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
               Sign In
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -68,12 +95,12 @@ export default function UserDashboardLayout({
             >
               Return Home
             </Link>
-            <Link
-              href="/login"
+            <button
+              onClick={handleSignInRedirect}
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
               Switch Account
-            </Link>
+            </button>
           </div>
         </div>
       </div>

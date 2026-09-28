@@ -28,7 +28,7 @@ export class AdminService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
 

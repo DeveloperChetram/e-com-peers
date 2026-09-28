@@ -66,3 +66,14 @@ export const loginAdmin = async (
 
 export const getUserProfile = async (): Promise<any> =>
   apiClient('/user/profile');
+
+export const logoutUser = async (): Promise<{ message: string }> =>
+  apiClient('/user/logout', {
+    method: 'POST',
+  });
+
+export const googleAuth = async (idToken: string): Promise<AuthResponse> =>
+  apiClient('/user/google', {
+    method: 'POST',
+    body: JSON.stringify({ idToken }),
+  });
