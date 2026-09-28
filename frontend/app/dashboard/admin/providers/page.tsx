@@ -14,6 +14,8 @@ import {
   Loader2,
   Check,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   getAdminProviders,
@@ -38,14 +40,24 @@ export default function AdminProvidersPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   const fetchProviders = async () => {
     try {
       setLoading(true);
       const res = await getAdminProviders({
         search: search.trim() || undefined,
         status: statusFilter,
+        page,
+        limit,
       });
       dispatch(setProviders(res.data || []));
+      setTotal(res.total ?? (res.data?.length || 0));
+      setTotalPages(res.totalPages ?? Math.ceil((res.total || 1) / limit));
     } catch (err) {
       console.error('Failed to load providers:', err);
     } finally {
@@ -54,8 +66,12 @@ export default function AdminProvidersPage() {
   };
 
   useEffect(() => {
-    fetchProviders();
+    setPage(1);
   }, [search, statusFilter]);
+
+  useEffect(() => {
+    fetchProviders();
+  }, [search, statusFilter, page, limit]);
 
   const handleApprove = async (id: string) => {
     try {
@@ -297,6 +313,60 @@ export default function AdminProvidersPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Footer */}
+        {!loading && total > 0 && (
+          <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <div className="flex flex-wrap items-center gap-3 text-gray-500 dark:text-gray-400">
+              <span>
+                Showing <span className="font-bold text-gray-900 dark:text-white">{Math.min((page - 1) * limit + 1, total)}</span> to{' '}
+                <span className="font-bold text-gray-900 dark:text-white">{Math.min(page * limit, total)}</span> of{' '}
+                <span className="font-bold text-gray-900 dark:text-white">{total}</span> providers
+              </span>
+
+              <div className="flex items-center gap-1.5 pl-3 border-l border-gray-200 dark:border-gray-700">
+                <span>Per page:</span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-gray-900 dark:text-white font-medium focus:outline-none cursor-pointer"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <ChevronLeft size={14} />
+                <span>Previous</span>
+              </button>
+
+              <span className="font-semibold text-gray-700 dark:text-gray-300 px-2">
+                Page <span className="font-bold text-black dark:text-white">{page}</span> of{' '}
+                <span className="font-bold text-black dark:text-white">{totalPages}</span>
+              </span>
+
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
         )}
       </div>
