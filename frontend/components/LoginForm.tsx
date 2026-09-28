@@ -95,17 +95,23 @@ export function LoginForm({ initialRole }: LoginFormProps) {
       if (!credentialResponse.credential) {
         throw new Error('No credential received from Google');
       }
-      const res = await googleAuth(credentialResponse.credential);
+      const res = await googleAuth(credentialResponse.credential, {
+        isProvider: isProviderMode,
+      });
+      const resolvedRole = res.user?.role || (isProviderMode ? 'PROVIDER' : 'USER');
       dispatch(
         setUserAndToken({
           user: res.user,
           token: res.accessToken,
-          role: res.user?.role || 'USER',
+          role: resolvedRole,
         })
       );
       setSuccessMessage('Signed in with Google! Redirecting...');
+      const targetPath = isProviderMode
+        ? '/dashboard/provider'
+        : (res?.redirectTo || '/dashboard/user');
       setTimeout(() => {
-        router.replace('/dashboard/user');
+        router.replace(targetPath);
       }, 500);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google sign-in failed';

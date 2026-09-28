@@ -94,6 +94,7 @@ export class AppModule implements NestModule {
       .forRoutes(
         { path: 'user/profile', method: RequestMethod.GET },
         { path: 'user/profile', method: RequestMethod.PATCH },
+        { path: 'user/become-provider', method: RequestMethod.POST },
         { path: 'user/cart', method: RequestMethod.ALL },
         { path: 'user/cart/*', method: RequestMethod.ALL },
         { path: 'user/favorites', method: RequestMethod.ALL },

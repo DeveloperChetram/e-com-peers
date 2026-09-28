@@ -14,6 +14,7 @@ import { UserService } from './user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterProviderDto } from './dto/register-provider.dto';
+import { BecomeProviderDto } from './dto/become-provider.dto';
 import { SyncCartDto } from './dto/sync-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
@@ -40,21 +41,47 @@ export class UserController {
   }
 
   @Post('google')
-async googleAuth(
-  @Body('idToken') idToken: string,
-  @Res({ passthrough: true }) response: Response,
-) {
-  const result = await this.userService.googleLogin(idToken);
-  if (result.accessToken) {
-    response.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+  async googleAuth(
+    @Body('idToken') idToken: string,
+    @Res({ passthrough: true }) response: Response,
+    @Body('isProvider') isProvider?: boolean,
+    @Body('businessName') businessName?: string,
+    @Body('description') description?: string,
+  ) {
+    const result = await this.userService.googleLogin(idToken, {
+      isProvider,
+      businessName,
+      description,
     });
+    if (result.accessToken) {
+      response.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+    return result;
   }
-  return result;
-}
+
+  @Post('become-provider')
+  async becomeProvider(
+    @Req() req: any,
+    @Body() dto: BecomeProviderDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const userId = req.user?.id;
+    const result = await this.userService.becomeProvider(userId, dto);
+    if (result.accessToken) {
+      response.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+    return result;
+  }
 
   @Post('/register/provider')
   async registerProvider(

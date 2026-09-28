@@ -15,10 +15,12 @@ import {
   X,
   LogOut,
   User as UserIcon,
+  Store,
 } from 'lucide-react';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/slices/auth.slice';
 import { logoutUser } from '@/apis/auth.api';
+import BecomeProviderModal from '@/components/BecomeProviderModal';
 
 interface UserSidebarProps {
   isOpen: boolean;
@@ -58,6 +60,7 @@ export default function UserSidebar({ isOpen, onClose }: UserSidebarProps) {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
+  const [isBecomeProviderOpen, setIsBecomeProviderOpen] = React.useState(false);
 
   const displayName = (user as any)?.name || 'Shopper';
   const displayEmail = (user as any)?.email || 'user@shop.co';
@@ -165,6 +168,31 @@ export default function UserSidebar({ isOpen, onClose }: UserSidebarProps) {
 
         {/* Bottom Section */}
         <div className="p-3 border-t border-gray-100 dark:border-gray-800 space-y-1">
+          {/* Become a Provider / Switch to Provider Portal */}
+          {((user as any)?.role === 'PROVIDER' || (user as any)?.provider) ? (
+            <Link
+              href="/dashboard/provider"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Store size={17} className="text-amber-600 dark:text-amber-400" />
+                <span>Provider Portal</span>
+              </div>
+              <ExternalLink size={13} className="text-amber-600 dark:text-amber-400" />
+            </Link>
+          ) : (
+            <button
+              onClick={() => setIsBecomeProviderOpen(true)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Store size={17} className="text-amber-600 dark:text-amber-400" />
+                <span>Become a Seller</span>
+              </div>
+              <ExternalLink size={13} className="text-amber-600 dark:text-amber-400" />
+            </button>
+          )}
+
           {/* Quick link to store catalog */}
           <Link
             href="/products"
@@ -187,6 +215,11 @@ export default function UserSidebar({ isOpen, onClose }: UserSidebarProps) {
           </button>
         </div>
       </aside>
+
+      <BecomeProviderModal
+        isOpen={isBecomeProviderOpen}
+        onClose={() => setIsBecomeProviderOpen(false)}
+      />
     </>
   );
 }

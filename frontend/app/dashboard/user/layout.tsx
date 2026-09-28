@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { logout } from '@/redux/slices/auth.slice';
 import { logoutUser } from '@/apis/auth.api';
-import { UserCheck, ShieldAlert, Loader2 } from 'lucide-react';
+import { UserCheck, Loader2 } from 'lucide-react';
 import UserSidebar from './components/UserSidebar';
 import UserHeader from './components/UserHeader';
 
@@ -18,11 +18,9 @@ export default function UserDashboardLayout({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, isAuthenticated, role, isInitialized } = useAppSelector(
+  const { user, isAuthenticated, isInitialized } = useAppSelector(
     (state) => state.auth
   );
-
-  const activeRole = (user as any)?.role || role;
 
   const handleSignInRedirect = async () => {
     try {
@@ -69,37 +67,6 @@ export default function UserDashboardLayout({
               className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
             >
               Sign In
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Guard: wrong role
-  if (activeRole && activeRole !== 'USER') {
-    return (
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0F1117] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white dark:bg-[#161922] p-8 rounded-3xl border border-gray-200 dark:border-gray-800 text-center shadow-lg space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 mx-auto flex items-center justify-center">
-            <ShieldAlert size={32} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Access Denied</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            This area is only accessible to customer accounts.
-          </p>
-          <div className="pt-2 flex justify-center gap-3">
-            <Link
-              href="/"
-              className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold hover:bg-gray-200"
-            >
-              Return Home
-            </Link>
-            <button
-              onClick={handleSignInRedirect}
-              className="px-4 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90"
-            >
-              Switch Account
             </button>
           </div>
         </div>

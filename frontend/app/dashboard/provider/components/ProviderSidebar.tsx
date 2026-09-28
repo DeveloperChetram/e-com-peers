@@ -17,6 +17,7 @@ import {
   Sparkles,
   Truck,
   Users,
+  User,
 } from 'lucide-react';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/slices/auth.slice';
@@ -181,11 +182,23 @@ export default function ProviderSidebar({ isOpen, onClose }: ProviderSidebarProp
         </div>
 
         {/* Bottom Section */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
+        <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+          {/* Customer Account Pill */}
+          <Link
+            href="/dashboard/user"
+            className="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200/80 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 group"
+          >
+            <div className="flex items-center gap-2">
+              <User size={15} className="text-gray-500 dark:text-gray-400" />
+              <span>Customer Account</span>
+            </div>
+            <ExternalLink size={13} className="text-gray-400 dark:text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors" />
+          </Link>
+
           {/* Live Store Pill */}
           <Link
             href="/"
-            className="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200/80 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 group"
+            className="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200/80 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 group"
           >
             <div className="flex items-center gap-2">
               <Store size={15} className="text-gray-500 dark:text-gray-400" />

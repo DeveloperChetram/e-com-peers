@@ -72,8 +72,27 @@ export const logoutUser = async (): Promise<{ message: string }> =>
     method: 'POST',
   });
 
-export const googleAuth = async (idToken: string): Promise<AuthResponse> =>
+export const becomeProvider = async (data: {
+  businessName: string;
+  description?: string;
+}): Promise<AuthResponse> =>
+  apiClient('/user/become-provider', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const googleAuth = async (
+  idToken: string,
+  options?: {
+    isProvider?: boolean;
+    businessName?: string;
+    description?: string;
+  }
+): Promise<AuthResponse> =>
   apiClient('/user/google', {
     method: 'POST',
-    body: JSON.stringify({ idToken }),
+    body: JSON.stringify({
+      idToken,
+      ...(options || {}),
+    }),
   });

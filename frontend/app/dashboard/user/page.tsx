@@ -24,6 +24,7 @@ import { RootState } from '@/redux/store';
 import { getMyOrders, OrderResponse } from '@/apis/orders.api';
 import { selectFavorites } from '@/redux/slices/user.slice';
 import { useAddresses } from '@/hooks/useAddresses';
+import BecomeProviderModal from '@/components/BecomeProviderModal';
 
 export default function UserOverviewPage() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -33,6 +34,7 @@ export default function UserOverviewPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(true);
+  const [isBecomeProviderOpen, setIsBecomeProviderOpen] = useState<boolean>(false);
 
   const displayName = (user as any)?.name || 'Valued Shopper';
   const displayEmail = (user as any)?.email || 'customer@example.com';
@@ -75,6 +77,23 @@ export default function UserOverviewPage() {
             Track recent deliveries, review your order history, manage saved delivery addresses, and discover curated items for your style.
           </p>
           <div className="pt-3 flex flex-wrap items-center gap-3">
+            {((user as any)?.role === 'PROVIDER' || (user as any)?.provider) ? (
+              <Link
+                href="/dashboard/provider"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-bold transition-colors shadow-xs"
+              >
+                <Store size={14} />
+                <span>Go to Provider Portal</span>
+              </Link>
+            ) : (
+              <button
+                onClick={() => setIsBecomeProviderOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              >
+                <Store size={14} />
+                <span>Become a Provider</span>
+              </button>
+            )}
             <Link
               href="/products"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-xs font-bold hover:bg-gray-100 transition-colors shadow-xs"
@@ -517,6 +536,11 @@ export default function UserOverviewPage() {
           </div>
         </div>
       </div>
+
+      <BecomeProviderModal
+        isOpen={isBecomeProviderOpen}
+        onClose={() => setIsBecomeProviderOpen(false)}
+      />
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
   Building2,
   FileText,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { registerUser, registerProvider, RegisterProviderData, googleAuth } from '@/apis/auth.api';
 import { setUserAndToken } from '@/redux/slices/auth.slice';
@@ -61,6 +62,7 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormInputs>({
     defaultValues: {
@@ -74,6 +76,12 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
     },
     mode: 'onTouched',
   });
+
+  const [pendingGoogleCredential, setPendingGoogleCredential] = useState<string | null>(null);
+  const [showGoogleProviderModal, setShowGoogleProviderModal] = useState<boolean>(false);
+  const [modalBusinessName, setModalBusinessName] = useState<string>('');
+  const [modalDescription, setModalDescription] = useState<string>('');
+  const [isSubmittingGoogleProvider, setIsSubmittingGoogleProvider] = useState<boolean>(false);
 
   const onSubmit = async (data: RegisterFormInputs) => {
     setServerError(null);
@@ -132,7 +140,31 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
       if (!credentialResponse.credential) {
         throw new Error('No credential received from Google');
       }
-      const res = await googleAuth(credentialResponse.credential);
+
+      if (isProviderMode) {
+        const currentBizName = getValues('businessName')?.trim();
+        const currentDesc = getValues('description')?.trim();
+
+        if (!currentBizName) {
+          // Open modal to capture business name
+          setPendingGoogleCredential(credentialResponse.credential);
+          setShowGoogleProviderModal(true);
+          return;
+        }
+
+        // Business name was entered in form, proceed directly
+        await completeGoogleProviderRegistration(
+          credentialResponse.credential,
+          currentBizName,
+          currentDesc
+        );
+        return;
+      }
+
+      // Customer registration
+      const res = await googleAuth(credentialResponse.credential, {
+        isProvider: false,
+      });
       dispatch(
         setUserAndToken({
           user: res.user,
@@ -147,6 +179,40 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google sign-in failed';
       setServerError(message);
+    }
+  };
+
+  const completeGoogleProviderRegistration = async (
+    credential: string,
+    businessName: string,
+    description?: string
+  ) => {
+    try {
+      setIsSubmittingGoogleProvider(true);
+      setServerError(null);
+      const res = await googleAuth(credential, {
+        isProvider: true,
+        businessName,
+        description,
+      });
+      dispatch(
+        setUserAndToken({
+          user: res.user,
+          token: res.accessToken,
+          role: 'PROVIDER',
+        })
+      );
+      setServerSuccess('Provider account created with Google! Redirecting...');
+      setShowGoogleProviderModal(false);
+      setTimeout(() => {
+        router.replace('/dashboard/provider');
+      }, 500);
+    } catch (err: any) {
+      const message =
+        err?.message || 'Failed to complete provider registration with Google';
+      setServerError(message);
+    } finally {
+      setIsSubmittingGoogleProvider(false);
     }
   };
 
@@ -522,29 +588,110 @@ export function RegisterForm({ initialRole }: RegisterFormProps = {}) {
         </button>
 
         {/* Google OAuth on Register Form for Customer */}
-        {!isProviderMode && (
-          <>
-            <div className="relative my-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+        {/* Google OAuth on Register Form for Customers & Providers */}
+        <div className="relative my-3">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">
+              {isProviderMode ? 'Or register provider with' : 'Or sign up with'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-center w-full">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setServerError('Google Sign-Up failed')}
+            shape="pill"
+            width="100%"
+          />
+        </div>
+      </form>
+
+      {/* Modal for Google Provider Registration when business name is needed */}
+      {showGoogleProviderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#161922] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <button
+              type="button"
+              onClick={() => setShowGoogleProviderModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 text-xs font-semibold">
+                <Store size={14} />
+                <span>Seller Onboarding</span>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or sign up with</span>
-              </div>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                Almost Done!
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                Please enter your store or business details to complete your seller registration with Google.
+              </p>
             </div>
 
-            <div className="flex justify-center w-full">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setServerError('Google Sign-Up failed')}
-                useOneTap
-                shape="pill"
-                width="100%"
-              />
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                  Business / Store Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={modalBusinessName}
+                  onChange={(e) => setModalBusinessName(e.target.value)}
+                  placeholder="e.g. Apex Apparel Co."
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:border-black dark:focus:border-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                  Store Description (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={modalDescription}
+                  onChange={(e) => setModalDescription(e.target.value)}
+                  placeholder="Briefly describe your items and specialty..."
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:border-black dark:focus:border-white resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleProviderModal(false)}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!modalBusinessName.trim() || isSubmittingGoogleProvider}
+                  onClick={() => {
+                    if (pendingGoogleCredential) {
+                      completeGoogleProviderRegistration(
+                        pendingGoogleCredential,
+                        modalBusinessName.trim(),
+                        modalDescription.trim()
+                      );
+                    }
+                  }}
+                  className="px-5 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+                >
+                  {isSubmittingGoogleProvider ? 'Registering...' : 'Complete Registration'}
+                </button>
+              </div>
             </div>
-          </>
-        )}
-      </form>
+          </div>
+        </div>
+      )}
 
       {/* Switch to Login */}
       <div className="mt-3.5 text-center text-xs text-gray-600">

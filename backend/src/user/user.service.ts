@@ -223,12 +223,19 @@ export class UserService {
     return {
       message: 'User logged in successfully',
       accessToken,
-      redirectTo: isStaffOrProvider ? '/dashboard/provider' : '/dashboard/user',
+      redirectTo: '/dashboard/user',
       user: userWithoutPassword,
     };
   }
 
-  async googleLogin(idToken: string) {
+  async googleLogin(
+    idToken: string,
+    options?: {
+      isProvider?: boolean;
+      businessName?: string;
+      description?: string;
+    },
+  ) {
     let payload;
     try {
       const ticket = await googleClient.verifyIdToken({
@@ -244,31 +251,176 @@ export class UserService {
       throw new BadRequestException('Invalid Google token');
     }
     const { email, name, sub: googleId } = payload;
-  // Find or create user
-  let user = await this.prisma.user.findFirst({
-    where: { OR: [{ googleId }, { email }] },
-  });
-  if (!user) {
-    user = await this.prisma.user.create({
-      data: {
-        email,
-        name: name || email.split('@')[0],
-        googleId,
-        role: 'USER',
+
+    // Find or create user
+    let user = await this.prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+      include: {
+        provider: true,
+        provider_member: { include: { provider: true } },
       },
     });
-  } else if (!user.googleId) {
-    // Link Google ID if user previously registered with email/password
-    user = await this.prisma.user.update({
-      where: { id: user.id },
-      data: { googleId },
-    });
+
+    const isProviderRequested =
+      options?.isProvider === true || Boolean(options?.businessName);
+
+    if (!user) {
+      const role = isProviderRequested ? 'PROVIDER' : 'USER';
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: name || email.split('@')[0],
+          googleId,
+          role,
+        },
+        include: {
+          provider: true,
+          provider_member: { include: { provider: true } },
+        },
+      });
+
+      if (isProviderRequested) {
+        const businessName =
+          options?.businessName?.trim() || `${user.name}'s Store`;
+        const provider = await this.prisma.provider.create({
+          data: {
+            userId: user.id,
+            businessName,
+            description: options?.description || '',
+            status: 'PENDING',
+          },
+        });
+        user.provider = provider;
+      }
+    } else {
+      if (!user.googleId) {
+        // Link Google ID if user previously registered with email/password
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+          include: {
+            provider: true,
+            provider_member: { include: { provider: true } },
+          },
+        });
+      }
+
+      // If user registered with Google as provider or converted
+      if (isProviderRequested && !user.provider) {
+        const businessName =
+          options?.businessName?.trim() || `${user.name}'s Store`;
+        const provider = await this.prisma.provider.create({
+          data: {
+            userId: user.id,
+            businessName,
+            description: options?.description || '',
+            status: 'PENDING',
+          },
+        });
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { role: 'PROVIDER' },
+          include: {
+            provider: true,
+            provider_member: { include: { provider: true } },
+          },
+        });
+      }
+    }
+
+    const isStaffOrProvider =
+      user.role === 'PROVIDER' ||
+      user.role === 'PROVIDER_STAFF' ||
+      Boolean(user.provider) ||
+      Boolean(user.provider_member?.length);
+
+    const effectiveRole = isStaffOrProvider
+      ? user.role === 'PROVIDER_STAFF'
+        ? 'PROVIDER_STAFF'
+        : 'PROVIDER'
+      : user.role;
+
+    const jwtPayload = {
+      id: user.id,
+      email: user.email,
+      role: effectiveRole,
+    };
+    const accessToken = this.jwtService.sign(jwtPayload);
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Logged in with Google successfully',
+      user: {
+        ...userWithoutPassword,
+        role: effectiveRole,
+      },
+      accessToken,
+      redirectTo: isProviderRequested ? '/dashboard/provider' : '/dashboard/user',
+    };
   }
-  const jwtPayload = { id: user.id, email: user.email, role: user.role };
-  const accessToken = this.jwtService.sign(jwtPayload);
-  const { password, ...userWithoutPassword } = user;
-  return { user: userWithoutPassword, accessToken };
-}
+
+  async becomeProvider(
+    userId: number,
+    dto: { businessName: string; description?: string },
+  ) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.provider || user.role === 'PROVIDER') {
+      throw new ConflictException('User is already registered as a provider');
+    }
+
+    if (!dto.businessName || !dto.businessName.trim()) {
+      throw new BadRequestException('Business name is required');
+    }
+
+    // Create provider record
+    const provider = await this.prisma.provider.create({
+      data: {
+        userId: user.id,
+        businessName: dto.businessName.trim(),
+        description: dto.description?.trim() || '',
+        status: 'PENDING',
+      },
+    });
+
+    // Update user role to PROVIDER
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { role: 'PROVIDER' },
+      include: { provider: true },
+    });
+
+    // Sign new JWT with PROVIDER role
+    const payload = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: 'PROVIDER',
+    };
+    const accessToken = this.jwtService.sign(payload);
+
+    const { password, ...userWithoutPassword } = updatedUser;
+
+    return {
+      message: 'Successfully converted to provider account',
+      user: {
+        ...userWithoutPassword,
+        provider,
+      },
+      accessToken,
+      redirectTo: '/dashboard/provider',
+    };
+  }
 
 
   async getProfile(userId: number) {
