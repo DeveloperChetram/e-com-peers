@@ -219,10 +219,10 @@ export class UserService {
       role: user.role,
     };
 
-    const isStaffOrProvider =
-      user.role === 'PROVIDER' ||
-      user.role === 'PROVIDER_STAFF' ||
-      (user.provider_member && user.provider_member.length > 0);
+    // const isStaffOrProvider =
+    //   user.role === 'PROVIDER' ||
+    //   user.role === 'PROVIDER_STAFF' ||
+    //   (user.provider_member && user.provider_member.length > 0);
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: JWT_EXPIRES_IN,

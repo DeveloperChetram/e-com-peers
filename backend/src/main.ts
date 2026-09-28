@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     instrument: ObserveInstrument,
   });
-  app.enableCors({ credentials: true, origin: 'http://localhost:3000' });
+  app.enableCors({ credentials: true, origin: 'https://e-com-peers.vercel.app/' });
   app.use(cookieParser());
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
