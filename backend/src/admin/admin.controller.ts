@@ -103,7 +103,7 @@ export class AdminController {
   }
 
   // products
-
+  
   @Get('products')
   getProducts(@Query() query: any) {
     return this.adminService.getProducts(query);

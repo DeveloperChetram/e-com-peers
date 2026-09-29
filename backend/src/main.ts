@@ -19,6 +19,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     instrument: ObserveInstrument,
   });
+  app.setGlobalPrefix('api');
   app.enableCors({ credentials: true, origin: allowedOrigins});
   app.use(cookieParser());
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
