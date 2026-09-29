@@ -22,6 +22,9 @@ import { ProviderModule } from './provider/provider.module';
 import { MailModule } from './mail/mail.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { RedisModule } from './redis/redis.module';
+import { CloudinaryController } from './cloudinary/cloudinary.controller';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -42,9 +45,10 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ProviderModule,
     MailModule,
     RabbitMQModule,
+    CloudinaryModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, CloudinaryController],
+  providers: [AppService, CloudinaryService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -178,13 +178,20 @@ export class UserService {
       );
     }
 
+    const isOwner = user.role === 'PROVIDER' || !!user.provider;
+    const isStaff =
+      user.role === 'PROVIDER_STAFF' ||
+      (user.provider_member && user.provider_member.length > 0);
+    const effectiveRole = isStaff
+      ? 'PROVIDER_STAFF'
+      : isOwner
+        ? 'PROVIDER'
+        : user.role;
+
+
+
     // 2. Provider & Staff login flow (from provider login page)
     if (dto.isProvider) {
-      const isOwner = user.role === 'PROVIDER' || !!user.provider;
-      const isStaff =
-        user.role === 'PROVIDER_STAFF' ||
-        (user.provider_member && user.provider_member.length > 0);
-
       if (!isOwner && !isStaff) {
         throw new UnauthorizedException(
           'No provider or staff account found for this email. Please log in as a customer or register as a provider.',
@@ -194,7 +201,7 @@ export class UserService {
       const payload = {
         id: user.id,
         email: user.email,
-        role: user.role,
+        role: effectiveRole,
       };
 
       const accessToken = this.jwtService.sign(payload, {
@@ -208,21 +215,16 @@ export class UserService {
           : 'Provider logged in successfully',
         accessToken,
         redirectTo: '/dashboard/provider',
-        user: userWithoutPassword,
+        user: { ...userWithoutPassword, role: effectiveRole },
       };
     }
 
-    // 3. User / Customer login flow (all users logging in here redirect to /dashboard/user)
+    // 3. User / Customer login flow
     const payload = {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
     };
-
-    // const isStaffOrProvider =
-    //   user.role === 'PROVIDER' ||
-    //   user.role === 'PROVIDER_STAFF' ||
-    //   (user.provider_member && user.provider_member.length > 0);
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: JWT_EXPIRES_IN,
@@ -233,7 +235,7 @@ export class UserService {
       message: 'User logged in successfully',
       accessToken,
       redirectTo: '/dashboard/user',
-      user: userWithoutPassword,
+      user: { ...userWithoutPassword, role: effectiveRole },
     };
   }
 
@@ -349,6 +351,14 @@ export class UserService {
         : 'PROVIDER'
       : user.role;
 
+    if (user.role !== effectiveRole) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { role: effectiveRole },
+      });
+      user.role = effectiveRole;
+    }
+
     const jwtPayload = {
       id: user.id,
       email: user.email,
@@ -451,6 +461,8 @@ export class UserService {
         isActive: true,
         createdAt: true,
         address: true,
+        provider: true,
+        provider_member: { include: { provider: true } },
         _count: {
           select: {
             order: true,

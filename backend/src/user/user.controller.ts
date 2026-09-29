@@ -19,6 +19,15 @@ import { SyncCartDto } from './dto/sync-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? ('none' as const) : ('lax' as const),
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
@@ -30,12 +39,7 @@ export class UserController {
   ) {
     const result = await this.userService.register(dto);
     if (result.accessToken) {
-      response.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+      response.cookie('accessToken', result.accessToken, authCookieOptions);
     }
     return result;
   }
@@ -54,12 +58,7 @@ export class UserController {
       description,
     });
     if (result.accessToken) {
-      response.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      response.cookie('accessToken', result.accessToken, authCookieOptions);
     }
     return result;
   }
@@ -73,12 +72,7 @@ export class UserController {
     const userId = req.user?.id;
     const result = await this.userService.becomeProvider(userId, dto);
     if (result.accessToken) {
-      response.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      response.cookie('accessToken', result.accessToken, authCookieOptions);
     }
     return result;
   }
@@ -90,12 +84,7 @@ export class UserController {
   ) {
     const result = await this.userService.registerProvider(dto);
     if (result.accessToken) {
-      response.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+      response.cookie('accessToken', result.accessToken, authCookieOptions);
     }
     return result;
   }
@@ -107,12 +96,7 @@ export class UserController {
   ) {
     const result: any = await this.userService.login(dto);
     if (result?.accessToken) {
-      response.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+      response.cookie('accessToken', result.accessToken, authCookieOptions);
     }
     return result;
   }
@@ -121,8 +105,9 @@ export class UserController {
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('accessToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      path: '/',
     });
     return { success: true, message: 'Logged out successfully' };
   }

@@ -14,7 +14,7 @@ export class ProviderMiddleware implements NestMiddleware {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async use(req: Request, res: Response, next: NextFunction) {
     let token = req.cookies?.['accessToken'];

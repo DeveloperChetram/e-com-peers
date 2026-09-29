@@ -111,7 +111,7 @@ services:
       - ./frontend/.env
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: 723393176190-guo4hjvurf35s1649hcd9tr44nir359o.apps.googleusercontent.com
     volumes:
       - ./frontend:/app

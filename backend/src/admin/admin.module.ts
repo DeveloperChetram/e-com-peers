@@ -16,4 +16,5 @@ import { PrismaModule } from '../prisma/prisma.module';
   providers: [AdminService],
   exports: [AdminService, JwtModule],
 })
+
 export class AdminModule { }

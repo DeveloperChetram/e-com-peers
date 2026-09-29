@@ -28,7 +28,7 @@ export class ProductsService {
     throw new ForbiddenException('Provider account not found');
   }
 
-  async createProduct(dto: CreateProductDto, user?: any, file?: any) {
+  async createProduct(dto: CreateProductDto, user?: any, imageUrl?: any) {
     const providerId = await this.getProviderId(user);
 
     const category = await this.prisma.category.findUnique({
@@ -36,9 +36,9 @@ export class ProductsService {
     });
     if (!category) throw new NotFoundException('Category not found');
 
-    const imageUrl = file
-      ? `/uploads/products/${file.filename}`
-      : dto.imageUrl || '';
+    // const imageUrl = file
+    //   ? `/uploads/products/${file.filename}`
+    //   : dto.imageUrl || '';
 
     const isPublished = dto.isPublished === true || dto.isPublished === 'true';
 

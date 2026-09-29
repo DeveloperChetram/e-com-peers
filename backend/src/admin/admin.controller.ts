@@ -25,11 +25,13 @@ export class AdminController {
   ) {
     const result: any = await this.adminService.login(dto);
     if (result?.accessToken) {
+      const isProduction = process.env.NODE_ENV === 'production';
       response.cookie('accessToken', result.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
+        secure: isProduction,
+        sameSite: isProduction ? ('none' as const) : ('lax' as const),
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/',
       });
     }
     return result;
@@ -103,7 +105,7 @@ export class AdminController {
   }
 
   // products
-  
+
   @Get('products')
   getProducts(@Query() query: any) {
     return this.adminService.getProducts(query);

@@ -18,19 +18,21 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { extname } from 'path';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 const productMulterOptions = {
-  storage: diskStorage({
-    destination: './uploads/products',
-    filename: (req, file, callback) => {
-      const uniqueName =
-        `${Date.now()}-${Math.round(Math.random() * 1e9)}` +
-        extname(file.originalname);
-      callback(null, uniqueName);
-    },
-  }),
+  // storage: diskStorage({
+  //   destination: './uploads/products',
+  //   filename: (req, file, callback) => {
+  //     const uniqueName =
+  //       `${Date.now()}-${Math.round(Math.random() * 1e9)}` +
+  //       extname(file.originalname);
+  //     callback(null, uniqueName);
+  //   },
+  // }),
+  storage:memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5 MB
   },
@@ -44,11 +46,11 @@ const productMulterOptions = {
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService, private readonly cloudinaryService: CloudinaryService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('image', productMulterOptions))
-  createProduct(
+  async createProduct(
     @Body() dto: CreateProductDto,
     @Req() req: Request,
     @UploadedFile() file: Express.Multer.File,
@@ -59,7 +61,12 @@ export class ProductsController {
         'Provider staff cannot create products. Only the store provider can perform this action.',
       );
     }
-    return this.productsService.createProduct(dto, user, file);
+     console.log('FILE:', file);
+  console.log('BUFFER SIZE:', file?.buffer?.length);
+
+    const uploadResult = await this.cloudinaryService.uploadImage(file);
+    console.log('image uploaded to cloudinary',uploadResult)
+    return this.productsService.createProduct(dto, user, uploadResult?.url);
   }
 
   @Get()
